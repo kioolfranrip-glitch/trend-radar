@@ -76,11 +76,10 @@ function serveStatic(pathname, res) {
 
   const tryNext = (i) => {
     if (i >= candidates.length) {
-      // 带扩展名的缺失文件直接 404；其余交给前端路由（回首页）
-      if (path.extname(rel)) return notFound();
-      return fs.readFile(path.join(PUBLIC, 'index.html'), (e, buf) => {
+      // 与 Cloudflare Pages 行为对齐：缺失路径一律 404（避免软 404 被搜索引擎收录）
+      return fs.readFile(path.join(PUBLIC, '404.html'), (e, buf) => {
         if (e) return notFound();
-        res.writeHead(200, securityHeaders({ 'content-type': MIME['.html'], 'cache-control': 'no-cache' }));
+        res.writeHead(404, securityHeaders({ 'content-type': MIME['.html'], 'cache-control': 'no-cache' }));
         res.end(buf);
       });
     }
