@@ -1,0 +1,3 @@
+# Google Search Console 的 HTML 文件验证要求 /googleXXX.html 返回 200。
+# Cloudflare Pages 默认把 /foo.html 308 重定向到 /foo，这里把验证文件内部重写回真实资产。
+/google9963f8632195544.html  /google9963f8632195544  200
