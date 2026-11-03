@@ -14,3 +14,7 @@ server.log
 Thumbs.db
 node_modules/
 .wrangler/
+
+# 临时抓取的分析素材
+art.html
+art.txt
