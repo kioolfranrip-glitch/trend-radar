@@ -1,6 +1,6 @@
 # Cloudflare Pages 接入步骤（方案 C：静态站 + GitHub Actions 定时抓取）
 
-整套只做一次，之后每 2 小时自动更新。
+整套只做一次，之后每 3 小时自动更新。
 
 ## 1. 建 Pages 项目
 
@@ -40,7 +40,7 @@ Account ID 在控制台右侧栏或 URL 里能找到。
 仓库 → Actions → **Sync trends and deploy** → Run workflow。
 约 3–5 分钟跑完，Pages 域名（`xxx.pages.dev`）就能访问了。
 
-之后 cron 每 2 小时自动跑一次；代码有 push 也会跑一次。
+之后 cron 每 3 小时自动跑一次；代码有 push 也会跑一次。
 
 ## 本地预览
 

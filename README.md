@@ -105,7 +105,7 @@ trends-world/
 部署完就不用管了，不需要服务器、不需要保持任何机器在线。
 
 ```
-GitHub Actions（每 2 小时）
+GitHub Actions（每 3 小时）
   └─ node tools/crawl.mjs → 生成 public/data/*.json
         └─ wrangler pages deploy public → Cloudflare Pages
 ```

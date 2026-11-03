@@ -5,8 +5,8 @@ name: Sync trends and deploy
 
 on:
   schedule:
-    # 每 2 小时一次（Google 每日热搜本身一天也只更新数次，没必要更频繁）
-    - cron: '0 */2 * * *'
+    # 每 3 小时一次（Google 每日热搜本身一天也只更新数次，没必要更频繁）
+    - cron: '0 */3 * * *'
   workflow_dispatch: {} # 支持手动触发
   push:
     branches: [main]
