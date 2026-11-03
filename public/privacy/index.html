@@ -34,8 +34,9 @@
   <p class="lead">Last updated: 3 November 2026</p>
 
   <div class="doc-callout">
-    <b>The short version:</b> there are no accounts, no cookies, and no third-party analytics or
-    advertising scripts. The technical information your browser sends is used only to serve the page.
+    <b>The short version:</b> there are no accounts and no cookies. We use Cloudflare Web Analytics,
+    which is cookieless and reports only aggregate numbers — no individual visitors are tracked, and
+    no advertising or cross-site tracking scripts are present.
   </div>
 
   <h2>1. What we collect</h2>
@@ -50,10 +51,18 @@
     <li><strong>Hosting</strong> — the site runs on Cloudflare, whose edge network records basic access logs under its own policy. See the <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Cloudflare privacy policy</a>.</li>
   </ul>
 
-  <h2>2. Cookies and local storage</h2>
+  <h2>2. Cookies, local storage and analytics</h2>
   <p>
     <strong>This site sets no cookies</strong> and stores nothing in localStorage, sessionStorage or
     IndexedDB. Search terms and filters live in page memory only and disappear on reload.
+  </p>
+  <p>
+    For aggregate traffic figures we use <strong>Cloudflare Web Analytics</strong>. It is cookieless,
+    does not fingerprint or identify individual visitors, and does not track you across other websites.
+    It records page views, referrers, country and device class in aggregate. Because it sets no cookie
+    and stores no identifier on your device, no consent banner is required for it under the ePrivacy
+    Directive. Details are in the
+    <a href="https://www.cloudflare.com/web-analytics-privacy-policy/" target="_blank" rel="noopener noreferrer">Cloudflare Web Analytics privacy notice</a>.
   </p>
 
   <h2>3. Third-party content and links</h2>
@@ -119,5 +128,7 @@
   </p>
   <p class="muted">Trends World · Content rights belong to the original sources</p>
 </footer>
+<!-- Cloudflare Web Analytics（无 Cookie，聚合统计） -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "a42e40977cb84fd6a5582218e3198ce5"}'></script>
 </body>
 </html>

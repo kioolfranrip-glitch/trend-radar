@@ -43,11 +43,11 @@ function securityHeaders(extra = {}) {
     'cross-origin-opener-policy': 'same-origin',
     'content-security-policy': [
       "default-src 'self'",
-      "script-src 'self'",
+      "script-src 'self' https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",
       "font-src 'self'",
-      "connect-src 'self'",
+      "connect-src 'self' https://cloudflareinsights.com https://static.cloudflareinsights.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'none'",

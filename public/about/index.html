@@ -82,7 +82,7 @@
   <h2>What we don't do</h2>
   <ul>
     <li>No accounts, no email collection, no sign-in;</li>
-    <li>No cookies, and no third-party analytics or advertising scripts;</li>
+    <li>No cookies, no advertising scripts and no cross-site tracking — only cookieless, aggregate visitor counts from Cloudflare Web Analytics;</li>
     <li>No full-text reproduction — only headlines, with a link to the original;</li>
     <li>No external images are loaded or mirrored on the page.</li>
   </ul>
@@ -92,7 +92,7 @@
     The backend is a dependency-free Node.js service: its own fetch queue, disk cache and proxy tunnel,
     with no database. The frontend is plain JavaScript with no framework and no build step.
     The world map is drawn in the browser from a local GeoJSON file into SVG — no map tiles, no CDN.
-    Apart from system fonts, the site makes no external requests.
+    Apart from system fonts and the Cloudflare Web Analytics beacon, the site makes no external requests.
   </p>
 
   <h2>Known limitations</h2>
@@ -117,5 +117,7 @@
   </p>
   <p class="muted">Trends World · Content rights belong to the original sources</p>
 </footer>
+<!-- Cloudflare Web Analytics（无 Cookie，聚合统计） -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "a42e40977cb84fd6a5582218e3198ce5"}'></script>
 </body>
 </html>

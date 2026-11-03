@@ -44,7 +44,7 @@
       <tr><td>Persisted user input</td><td>None. The search box filters in page memory</td></tr>
       <tr><td>File uploads / rich text</td><td>None</td></tr>
       <tr><td>Payments / form posts</td><td>None</td></tr>
-      <tr><td>Third-party scripts</td><td>None. No analytics, ads, fonts or CDN dependencies</td></tr>
+      <tr><td>Third-party scripts</td><td>Only the Cloudflare Web Analytics beacon (cookieless). No ads, fonts or other CDN dependencies</td></tr>
     </tbody>
   </table>
   <p class="note">
@@ -56,7 +56,7 @@
   <p>The site forces HTTPS and sends the following security headers:</p>
   <ul>
     <li><code>Strict-Transport-Security</code> — pins subsequent visits to HTTPS;</li>
-    <li><code>Content-Security-Policy</code> — same-origin scripts only, no inline script, no framing;</li>
+    <li><code>Content-Security-Policy</code> — same-origin scripts plus the Cloudflare analytics beacon only; no inline script, no framing;</li>
     <li><code>X-Content-Type-Options: nosniff</code> — disables MIME sniffing;</li>
     <li><code>X-Frame-Options: DENY</code> together with <code>frame-ancestors 'none'</code> — prevents clickjacking;</li>
     <li><code>Referrer-Policy: strict-origin-when-cross-origin</code> — no full path leakage on outbound clicks;</li>
@@ -101,5 +101,7 @@
   </p>
   <p class="muted">Trends World · Content rights belong to the original sources</p>
 </footer>
+<!-- Cloudflare Web Analytics（无 Cookie，聚合统计） -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "a42e40977cb84fd6a5582218e3198ce5"}'></script>
 </body>
 </html>
