@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Trends World · Daily top trends by country</title>
+<meta name="description" content="See the whole world at a glance: the hottest topic of the day in 176 countries and regions, each one linked to its original source." />
+<meta name="theme-color" content="#080b16" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<link rel="stylesheet" href="/styles.css?v=6" />
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">🌍</span>
+    <div class="brand-text">
+      <h1>Trends World</h1>
+      <p>Daily top trends · one click to the source</p>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10 2-4.35-4.35" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="search" type="search" placeholder="Search country, region or topic…" autocomplete="off" aria-label="Search country or topic" />
+    <kbd class="kbd-hint">/</kbd>
+  </div>
+
+  <div class="top-actions">
+    <div class="stat" id="stat">
+      <span class="dot live"></span><span id="statText">Connecting…</span>
+    </div>
+    <button id="refreshAll" class="btn ghost" title="Refresh the current view">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Refresh</span>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+  <!-- Left: world map -->
+  <section class="panel map-panel" aria-label="World trend map">
+    <div class="panel-head">
+      <h2>World heat map</h2>
+      <div class="map-legend">
+        <span><i class="sw sw-h4"></i>Hot</span>
+        <span><i class="sw sw-h2"></i>Warm</span>
+        <span><i class="sw sw-h0"></i>No data</span>
+      </div>
+    </div>
+    <div class="map-stage" id="mapStage">
+      <svg id="map" viewBox="0 0 1000 480" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Clickable world map">
+        <defs>
+          <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0e1730" /><stop offset="100%" stop-color="#0a0f1e" />
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3.2" result="b" /><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="landHot" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%" stop-color="#3d5590" /><stop offset="100%" stop-color="#2c3f69" />
+          </linearGradient>
+          <linearGradient id="landActive" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#5b8dff" /><stop offset="100%" stop-color="#9a6bff" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="1000" height="480" fill="url(#ocean)"></rect>
+        <g id="graticule" class="graticule"></g>
+        <g id="land"></g>
+        <g id="pins"></g>
+      </svg>
+      <div class="map-tip" id="mapTip" hidden></div>
+      <div class="map-loading" id="mapLoading"><span class="spinner"></span> Drawing the world map…</div>
+    </div>
+    <div class="map-foot" id="mapFoot"></div>
+  </section>
+
+  <!-- Right: details -->
+  <aside class="panel detail-panel" id="detail" aria-live="polite">
+    <div class="detail-empty" id="detailEmpty">
+      <div class="empty-emoji">🗺️</div>
+      <h3>Pick any country on the map</h3>
+      <p>Or jump in from a country card below to see what is trending there right now.</p>
+      <div class="empty-hints">
+        <button class="chip" data-jump="US">🇺🇸 United States</button>
+        <button class="chip" data-jump="JP">🇯🇵 Japan</button>
+        <button class="chip" data-jump="CN">🇨🇳 China</button>
+        <button class="chip" data-jump="BR">🇧🇷 Brazil</button>
+        <button class="chip" data-jump="DE">🇩🇪 Germany</button>
+      </div>
+    </div>
+    <div class="detail-body" id="detailBody" hidden></div>
+  </aside>
+</main>
+
+<section class="ticker" aria-label="Global trending ticker">
+  <div class="ticker-track" id="tickerTrack"></div>
+</section>
+
+<section class="cards-section" aria-label="Trends by country">
+  <div class="cards-head">
+    <h2 id="cardsTitle">Today's top trends by country</h2>
+    <div class="filters" id="filters"></div>
+  </div>
+  <div class="cards" id="cards">
+    <div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div>
+    <div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div>
+  </div>
+  <div class="load-more-wrap"><button class="btn" id="loadMore" hidden>Load more countries</button></div>
+</section>
+
+<footer class="footer">
+  <p class="foot-links">
+    <a href="/about/">About</a> · <a href="/privacy/">Privacy</a> ·
+    <a href="/terms/">Terms</a> · <a href="/security/">Security</a>
+  </p>
+  <p class="foot-about">
+    <b>Trends World</b> collects the hottest topic of the day for 176 countries and regions from
+    Google Trends, Baidu, Wikipedia and Bing News — falling back automatically by availability, and
+    labelling every entry with the source that actually answered. All topics link to their original
+    pages; content rights belong to the source sites.
+  </p>
+  <p class="muted">Synced every 2 hours · <span id="footTime"></span> · For reference only</p>
+</footer>
+
+<script src="/app.js?v=6" type="module"></script>
+</body>
+</html>

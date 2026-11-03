@@ -1,0 +1,17 @@
+{
+  "name": "trends-world",
+  "version": "1.0.0",
+  "private": true,
+  "description": "全球每日热榜：176 个国家/地区每天最热话题，附原文链接",
+  "type": "module",
+  "main": "server/index.mjs",
+  "scripts": {
+    "start": "node server/index.mjs",
+    "crawl": "node tools/crawl.mjs",
+    "preview": "node tools/crawl.mjs --only=US,JP,CN,DE,FR,GB,IN,BR --jobs=4 && node server/index.mjs",
+    "deploy": "npx wrangler pages deploy public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

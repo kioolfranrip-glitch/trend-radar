@@ -1,0 +1,10 @@
+Contact: mailto:security@trends-world.example
+Contact: mailto:hello@trends-world.example
+Expires: 2027-11-03T00:00:00.000Z
+Preferred-Languages: en, zh
+Canonical: https://trends-world.example/.well-known/security.txt
+Policy: https://trends-world.example/security/
+# Please read the policy before reporting.
+# The site has no accounts, no database and no third-party scripts.
+# Stress testing and destructive testing are not authorized.
+# No bug bounty is offered.

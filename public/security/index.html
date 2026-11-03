@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Security · Trends World</title>
+<meta name="description" content="Trends World security posture: no accounts or database, HTTPS with security headers, and how to report a vulnerability." />
+<meta name="theme-color" content="#080b16" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<link rel="stylesheet" href="/styles.css?v=6" />
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="brand-mark" aria-hidden="true">🌍</span>
+    <div class="brand-text">
+      <h1>Trends World</h1>
+      <p>What the world is searching for, today</p>
+    </div>
+  </a>
+  <nav class="doc-nav">
+    <a href="/">Map</a>
+    <a href="/about/">About</a>
+    <a href="/privacy/">Privacy</a>
+    <a href="/terms/">Terms</a>
+    <a href="/security/" class="on">Security</a>
+  </nav>
+</header>
+
+<main class="doc">
+  <h1>Security</h1>
+  <p class="lead">
+    This is a read-only aggregation page with no accounts and no user data. Here is the concrete picture.
+  </p>
+
+  <h2>Attack surface</h2>
+  <table class="doc-table">
+    <thead><tr><th>Item</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>User accounts / sign-in</td><td>None</td></tr>
+      <tr><td>Database</td><td>None — read-only cache files only</td></tr>
+      <tr><td>Persisted user input</td><td>None. The search box filters in page memory</td></tr>
+      <tr><td>File uploads / rich text</td><td>None</td></tr>
+      <tr><td>Payments / form posts</td><td>None</td></tr>
+      <tr><td>Third-party scripts</td><td>None. No analytics, ads, fonts or CDN dependencies</td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    No hijackable sessions and no injectable persistent input — that is the main security advantage of
+    a site shaped like this one.
+  </p>
+
+  <h2>Transport and response headers</h2>
+  <p>The site forces HTTPS and sends the following security headers:</p>
+  <ul>
+    <li><code>Strict-Transport-Security</code> — pins subsequent visits to HTTPS;</li>
+    <li><code>Content-Security-Policy</code> — same-origin scripts only, no inline script, no framing;</li>
+    <li><code>X-Content-Type-Options: nosniff</code> — disables MIME sniffing;</li>
+    <li><code>X-Frame-Options: DENY</code> together with <code>frame-ancestors 'none'</code> — prevents clickjacking;</li>
+    <li><code>Referrer-Policy: strict-origin-when-cross-origin</code> — no full path leakage on outbound clicks;</li>
+    <li><code>Permissions-Policy</code> — geolocation, camera, microphone and similar capabilities are disabled.</li>
+  </ul>
+
+  <h2>How data is handled</h2>
+  <ul>
+    <li>Fetched third-party content is plain data (title, link, source name) and is escaped on render — no HTML injection path;</li>
+    <li>Outbound links always use <code>rel="noopener noreferrer"</code> and open in a new tab;</li>
+    <li>The fetcher and the renderer are separate: an upstream failure degrades the data source, never the page itself.</li>
+  </ul>
+
+  <h2>Reporting a vulnerability</h2>
+  <p>
+    If you find a security issue, email
+    <a href="mailto:security@trends-world.example">security@trends-world.example</a> with reproduction
+    steps and impact. <strong>Please do not disclose it publicly</strong>, and do not stress-test or run
+    destructive tests against the site.
+  </p>
+  <ul>
+    <li>We will acknowledge receipt within <strong>3 business days</strong>;</li>
+    <li>Once confirmed, we aim to fix and publish a note within <strong>90 days</strong> (with credit if you wish);</li>
+    <li>This is an independent project: <strong>no bug bounty is offered</strong>, and good-faith testing will not be pursued.</li>
+  </ul>
+  <p class="note">
+    The machine-readable channel is <a href="/.well-known/security.txt"><code>/.well-known/security.txt</code></a>.
+  </p>
+
+  <h2>Out of scope</h2>
+  <ul>
+    <li>Security issues in third-party sites reached from this one — please contact them directly;</li>
+    <li>Issues requiring physical device access, or relying on end-of-life browsers;</li>
+    <li>General "best practice" suggestions beyond the headers above, unless you can show real impact.</li>
+  </ul>
+</main>
+
+<footer class="footer">
+  <p class="foot-links">
+    <a href="/">Map</a> · <a href="/about/">About</a> · <a href="/privacy/">Privacy</a> ·
+    <a href="/terms/">Terms</a> · <a href="/security/">Security</a>
+  </p>
+  <p class="muted">Trends World · Content rights belong to the original sources</p>
+</footer>
+</body>
+</html>

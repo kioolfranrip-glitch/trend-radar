@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>About · Trends World</title>
+<meta name="description" content="How Trends World collects the daily top trending topic for 176 countries and regions: data sources, update cycle, coverage gaps and known limitations." />
+<meta name="theme-color" content="#080b16" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<link rel="stylesheet" href="/styles.css?v=6" />
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="brand-mark" aria-hidden="true">🌍</span>
+    <div class="brand-text">
+      <h1>Trends World</h1>
+      <p>What the world is searching for, today</p>
+    </div>
+  </a>
+  <nav class="doc-nav">
+    <a href="/">Map</a>
+    <a href="/about/" class="on">About</a>
+    <a href="/privacy/">Privacy</a>
+    <a href="/terms/">Terms</a>
+    <a href="/security/">Security</a>
+  </nav>
+</header>
+
+<main class="doc">
+  <h1>About Trends World</h1>
+  <p class="lead">
+    A map of what people are searching for, right now. It collects the single hottest topic in
+    176 countries and regions for the day and links every entry back to its original source.
+  </p>
+
+  <h2>Why this exists</h2>
+  <p>
+    Finding out what another country is talking about usually means opening its trending page
+    or a local news site — different languages, scattered entry points, and plenty of regional blocks.
+    This site collapses all of that into three moves: one map, one card format, one click to the source.
+  </p>
+
+  <h2>Where the data comes from</h2>
+  <p>
+    The site produces no content of its own. It aggregates and links out. Sources are tried in order,
+    and every entry is labelled with the source that actually answered:
+  </p>
+  <table class="doc-table">
+    <thead>
+      <tr><th>Source</th><th>Coverage</th><th>What it measures</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Google Trends daily searches</td><td>122 countries and regions</td><td>Queries rising in volume that day, with 1–6 related news articles</td></tr>
+      <tr><td>Baidu hot search</td><td>Mainland China</td><td>Real-time hot search ranking (Google does not publish this region)</td></tr>
+      <tr><td>Wikipedia daily pageviews</td><td>A few regions</td><td>Most-read articles of the day</td></tr>
+      <tr><td>Bing News</td><td>The remaining ~51 countries</td><td>Same-day news retrieved by country name, ranked by relevance</td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    The first three measure search or reading interest. The last one measures news interest.
+    Those are different things, so the source is always shown rather than blended into one number.
+  </p>
+
+  <h2>How often it updates</h2>
+  <ul>
+    <li>Results are cached for 30 minutes, then refetched by a background queue;</li>
+    <li>The server runs a refresh pass every 25 minutes, paced at 260–480 ms per request to stay under upstream rate limits;</li>
+    <li>The page syncs silently every 10 minutes. On load it reads the cache first so the map paints immediately, then fills in any gaps.</li>
+  </ul>
+
+  <h2>Coverage and gaps</h2>
+  <p>
+    All 176 countries and regions currently return something, but coverage is uneven.
+    Google only publishes daily search trends for 122 of them; the rest fall back to news or
+    pageview data, which is coarser. A few places — North Korea, for instance — only have
+    international coverage <em>about</em> them rather than genuine local interest. Read those with that caveat in mind.
+  </p>
+
+  <h2>What we don't do</h2>
+  <ul>
+    <li>No accounts, no email collection, no sign-in;</li>
+    <li>No cookies, and no third-party analytics or advertising scripts;</li>
+    <li>No full-text reproduction — only headlines, with a link to the original;</li>
+    <li>No external images are loaded or mirrored on the page.</li>
+  </ul>
+
+  <h2>How it's built</h2>
+  <p>
+    The backend is a dependency-free Node.js service: its own fetch queue, disk cache and proxy tunnel,
+    with no database. The frontend is plain JavaScript with no framework and no build step.
+    The world map is drawn in the browser from a local GeoJSON file into SVG — no map tiles, no CDN.
+    Apart from system fonts, the site makes no external requests.
+  </p>
+
+  <h2>Known limitations</h2>
+  <ul>
+    <li>Google publishes its daily trends only a few times a day, so "today" means the most recent list, not a live feed;</li>
+    <li>Smaller countries use news interest in place of search interest, which is not directly comparable to larger markets;</li>
+    <li>A handful of outbound publishers reject non-browser requests; normal clicks are unaffected;</li>
+    <li>All content rights belong to the original sources — this site only indexes them.</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <p>
+    Questions or suggestions: <a href="mailto:hello@trends-world.example">hello@trends-world.example</a>.
+    For security issues, please use the channel listed on the <a href="/security/">security page</a>.
+  </p>
+</main>
+
+<footer class="footer">
+  <p class="foot-links">
+    <a href="/">Map</a> · <a href="/about/">About</a> · <a href="/privacy/">Privacy</a> ·
+    <a href="/terms/">Terms</a> · <a href="/security/">Security</a>
+  </p>
+  <p class="muted">Trends World · Content rights belong to the original sources</p>
+</footer>
+</body>
+</html>

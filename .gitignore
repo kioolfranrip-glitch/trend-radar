@@ -1,0 +1,16 @@
+# 抓取产物：由 GitHub Actions 或 npm run crawl 生成，不进版本库
+# （线上用 wrangler 直接上传，避免每次 2MB 的快照把仓库撑爆）
+public/data/
+
+# 抓取中间缓存
+data/cache/
+
+# 运行时
+server.log
+*.log
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+node_modules/
+.wrangler/
