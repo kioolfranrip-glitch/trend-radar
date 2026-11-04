@@ -1,0 +1,48 @@
+name: Daily report
+
+# 每天生成一份流量 + 抓取健康度报表，提交到 reports/
+# 需要 secret: CF_ANALYTICS_TOKEN（Cloudflare API Token，权限 Account · Account Analytics · Read）
+
+on:
+  schedule:
+    # 01:00 UTC = 北京 09:00
+    - cron: '0 1 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate report
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_ANALYTICS_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_SITE_TAG: 26ce21d686214feb8954d106b995082f
+        run: node tools/report.mjs --days=7
+
+      - name: Commit report
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          if git diff --staged --quiet; then
+            echo "no changes"
+          else
+            git commit -m "chore(report): $(date -u +%F) traffic and pipeline health"
+            git push
+          fi
