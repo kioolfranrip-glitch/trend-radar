@@ -9,6 +9,7 @@ const DATA = {
   countries: '/data/countries.json',
   board: '/data/board.json',
   meta: '/data/meta.json',
+  pulse: '/data/global.json',
   details: (iso) => `/data/details/${iso}.json`,
 };
 
@@ -33,6 +34,8 @@ const state = {
   pageSize: 24,
   mapReady: false,
   meta: null,
+  pulse: null,
+  detailTab: 'pulse',
   generatedAt: 0,
 };
 
@@ -479,24 +482,33 @@ function renderTicker() {
   track.innerHTML = items.join('') + items.join('');
 }
 
-/** 右侧未选国家时展示「全球此刻」：各大洲最热话题 */
-function renderGlobalPulse() {
-  const body = $('#detailBody');
-  const empty = $('#detailEmpty');
-  const rows = [...state.board.values()]
-    .filter((r) => r.top)
-    .sort((a, b) => parseTraffic(b.top.traffic) - parseTraffic(a.top.traffic));
-  if (!rows.length) return;
+/** 右侧未选国家时的「全球此刻」：跨国故事 + 按搜索量排序两种视角 */
+function pulseItemHtml(c, rank) {
+  const chips = c.countries
+    .slice(0, 8)
+    .map((iso) => {
+      const cc = state.byIso.get(iso);
+      return `<span class="pulse-chip">${flagEmoji(iso)} ${escapeHtml(cc?.nameZhShort || iso)}</span>`;
+    })
+    .join('');
+  const more =
+    c.countries.length > 8 ? `<span class="pulse-chip more">+${c.countries.length - 8}</span>` : '';
+  const href = c.url || `https://www.google.com/search?q=${encodeURIComponent(c.title)}`;
+  return `
+      <li class="pulse ${rank <= 3 ? `top${rank}` : ''}">
+        <a class="pulse-head" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">
+          <span class="pulse-count"><b>${c.count}</b><small>countries</small></span>
+          <span class="pulse-title">${escapeHtml(c.title)}</span>
+          <svg class="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <div class="pulse-chips">${chips}${more}</div>
+      </li>`;
+}
 
-  empty.hidden = true;
-  body.hidden = false;
-
-  const top = rows.slice(0, 12);
-  const list = top
-    .map((r, i) => {
-      const c = state.byIso.get(r.iso);
-      const rank = i + 1;
-      return `
+function topItemHtml(r, i) {
+  const c = state.byIso.get(r.iso);
+  const rank = i + 1;
+  return `
       <li class="topic">
         <a class="topic-link" href="${escapeHtml(r.top.url)}" target="_blank" rel="noopener noreferrer">
           <span class="rank ${rank <= 3 ? `r${rank}` : ''}">${rank}</span>
@@ -511,25 +523,66 @@ function renderGlobalPulse() {
           <svg class="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </li>`;
-    })
-    .join('');
+}
 
-  body.innerHTML = `
+function renderGlobalPulse() {
+  const body = $('#detailBody');
+  const empty = $('#detailEmpty');
+  const rows = [...state.board.values()]
+    .filter((r) => r.top)
+    .sort((a, b) => parseTraffic(b.top.traffic) - parseTraffic(a.top.traffic));
+  if (!rows.length) return;
+
+  empty.hidden = true;
+  body.hidden = false;
+
+  const clusters = state.pulse?.clusters || [];
+  const tab = state.detailTab;
+
+  const head = `
     <div class="detail-head">
       <div class="detail-title-row">
-        <span class="flag">🔥</span>
+        <span class="flag">${tab === 'pulse' ? '🌍' : '🔥'}</span>
         <div>
-          <h3>Right now, worldwide</h3>
-          <p class="detail-sub">Sorted by search volume · click to open the source</p>
+          <h3>${tab === 'pulse' ? 'Global pulse' : 'Right now, worldwide'}</h3>
+          <p class="detail-sub">${
+            tab === 'pulse'
+              ? 'Stories breaking in several countries at once · click to open the source'
+              : 'Sorted by search volume · click to open the source'
+          }</p>
         </div>
       </div>
-      <div class="detail-meta">
-        <span>${rows.length} countries and regions with data</span>
-        <span>·</span>
-        <span>Click any country on the map to drill in</span>
+      <div class="pulse-tabs" role="tablist">
+        <button class="ptab ${tab === 'pulse' ? 'on' : ''}" data-action="tab" data-tab="pulse" ${
+          tab === 'pulse' ? 'aria-selected="true"' : 'aria-selected="false"'
+        }>Global pulse${clusters.length ? ` <b>${clusters.length}</b>` : ''}</button>
+        <button class="ptab ${tab === 'top' ? 'on' : ''}" data-action="tab" data-tab="top" ${
+          tab === 'top' ? 'aria-selected="true"' : 'aria-selected="false"'
+        }>By search volume</button>
       </div>
-    </div>
-    <ul class="topic-list">${list}</ul>`;
+    </div>`;
+
+  if (tab === 'top') {
+    body.innerHTML = `${head}
+      <ul class="topic-list">${rows.slice(0, 12).map(topItemHtml).join('')}</ul>
+      <div class="detail-meta detail-meta-foot">
+        <span>${rows.length} countries and regions with data</span><span>·</span>
+        <span>Click any country on the map to drill in</span>
+      </div>`;
+    return;
+  }
+
+  const covered = clusters.reduce((n, c) => n + c.count, 0);
+  const list = clusters.length
+    ? `<ul class="pulse-list">${clusters.map((c, i) => pulseItemHtml(c, i + 1)).join('')}</ul>`
+    : `<p class="pulse-empty">No story is trending in two or more countries right now. Check the
+         <button class="linkish" data-action="tab" data-tab="top">country ranking</button> instead.</p>`;
+
+  body.innerHTML = `${head}
+    ${list}
+    <div class="detail-meta detail-meta-foot">
+      <span>${clusters.length} cross-border ${clusters.length === 1 ? 'story' : 'stories'} covering ${covered} of ${rows.length} places</span>
+    </div>`;
 }
 
 /* ---------------- 交互 ---------------- */
@@ -576,10 +629,12 @@ function hashIso() {
 /** 加载静态快照：board.json 一次点亮整张地图，不需要逐个请求 */
 async function loadData({ silent = false } = {}) {
   try {
-    const [boardRes, metaRes] = await Promise.all([
+    const [boardRes, metaRes, pulseRes] = await Promise.all([
       fetch(DATA.board, { cache: 'no-cache' }),
       fetch(DATA.meta, { cache: 'no-cache' }),
+      fetch(DATA.pulse, { cache: 'no-cache' }).catch(() => null),
     ]);
+    state.pulse = pulseRes && pulseRes.ok ? await pulseRes.json() : null;
     if (!boardRes.ok) throw new Error(`board.json → HTTP ${boardRes.status}`);
     const board = await boardRes.json();
     state.meta = metaRes.ok ? await metaRes.json() : null;
@@ -707,6 +762,11 @@ window.__tw = {
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
+  if (btn.dataset.action === 'tab') {
+    state.detailTab = btn.dataset.tab === 'top' ? 'top' : 'pulse';
+    renderGlobalPulse();
+    return;
+  }
   const iso = btn.dataset.iso;
   if (!iso) return;
   if (btn.dataset.action === 'refresh') window.__tw.refresh(iso);

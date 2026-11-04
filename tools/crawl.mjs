@@ -11,6 +11,7 @@
  * 产物：
  *   public/data/countries.json      国家元数据（前端一次性加载）
  *   public/data/board.json          每国 Top1 快照（首屏用，~70KB gzip）
+ *   public/data/global.json         Global Pulse：跨国话题聚类
  *   public/data/details/<ISO>.json  某国完整热榜（点开才加载）
  *   public/data/meta.json           生成时间、覆盖率、失败清单
  *
@@ -20,6 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TrendStore } from '../server/store.mjs';
+import { buildPulse } from './cluster.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -181,9 +183,35 @@ fs.writeFileSync(path.join(OUT_DIR, 'countries.json'), JSON.stringify(countries.
 fs.writeFileSync(path.join(OUT_DIR, 'board.json'), JSON.stringify({ generatedAt: meta.generatedAt, countries: board }));
 fs.writeFileSync(path.join(OUT_DIR, 'meta.json'), JSON.stringify(meta, null, 2));
 
+// Global Pulse：跨国家话题聚类（同一件事同时上了多国热榜）
+const pulse = buildPulse(
+  board.map((b) => ({ iso: b.iso, nameEn: '', source: b.source, topic: b.top })),
+);
+fs.writeFileSync(
+  path.join(OUT_DIR, 'global.json'),
+  JSON.stringify({
+    generatedAt: meta.generatedAt,
+    totalCountries: targets.length,
+    withData,
+    stories: pulse.stories,
+    clusters: pulse.clusters.map((c) => ({
+      title: c.title,
+      countries: c.countries,
+      count: c.count,
+      traffic: c.traffic,
+      trafficLabel: c.trafficLabel,
+      url: c.url,
+      source: c.source,
+      sources: c.sources,
+    })),
+  }),
+);
+
 console.log('');
 console.log(`完成：${withData}/${targets.length} 有数据，用时 ${meta.tookSeconds}s`);
 console.log('来源分布：', JSON.stringify(sourceCount));
+console.log(`Global Pulse：${pulse.stories} 条跨国故事（覆盖 ${pulse.clusters.reduce((n, c) => n + c.count, 0)} 个国家）`);
+for (const c of pulse.clusters.slice(0, 3)) console.log(`  · ${c.count} 国  ${c.title}`);
 if (kept.length) console.log(`沿用旧数据：${kept.length} 个（${kept.join(',')}）`);
 if (failed.length) console.log(`无数据：${failed.length} 个（${failed.join(',')}）`);
 
