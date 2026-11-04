@@ -115,7 +115,19 @@ Lesson: a strict CSP is good, but every third-party you add later has to be re-a
 
 **Search trends and news interest are not the same thing.** Google only publishes daily trends for 122 of the 176 places I wanted to cover. The rest fall back to Wikipedia pageviews or per-country Bing News. That's not a bug, but it means a card for Fiji and a card for Japan are answering slightly different questions. I label every row with its actual source rather than blending them into one fake ranking — but a reader who ignores the label will draw wrong conclusions.
 
-**Hash routing costs you your content.** I use `/#/JP` for the country view. That's one indexable URL for 176 countries. If I wanted search traffic, I'd need real routes (`/country/jp`) with prerendered titles and topic lists. That's the one architectural decision I'd revisit, and it's the reason I'm not expecting much from search yet.
+**Hash routing cost me my content, and I only noticed late.** I shipped the country view as `/#/JP`. That is one indexable URL standing in for 176 countries of content — and because the topics are rendered client-side, a crawler that doesn't run JavaScript sees nothing at all.
+
+The fix was a build step: the same crawl that writes JSON now also emits plain HTML pages at `/country/us/`, `/country/jp/` and so on, with the topic list, a real `<title>`, and per-source explanations baked into the markup. Twenty of them, not 176 — I want to see whether anyone actually searches for "what's trending in Japan" before generating 156 more pages nobody asked for.
+
+The general lesson: if a page's value is its content, don't make the crawler execute a program to read it.
+
+## One thing the data turned up by accident
+
+Once every country had a topic, I clustered them by headline similarity to see whether the same story ever topped more than one country's list. It does, constantly — and the clusters are a better read than the country-by-country list.
+
+On the day I wrote this, a single NBA game was the #1 trending search in nine countries, none of which were the United States. A football fixture appeared in five West African countries at once. Whatever you think your local feed says about the world, it is mostly saying something about you.
+
+The clustering itself is deliberately dumb: lowercase, strip punctuation, drop generic tokens like `vs` and `fc`, then group by token overlap. A semantic model would merge more aggressively, and would also invent matches that aren't there. When the output is going to be published as a claim about the world, I would rather under-merge.
 
 ---
 
