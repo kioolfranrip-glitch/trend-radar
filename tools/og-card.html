@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OG card</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: #05070e; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: radial-gradient(120% 100% at 30% 0%, #101a33 0%, #080b16 55%, #05070e 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #e9eefb;
+    position: relative;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(120, 150, 210, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120, 150, 210, 0.055) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(75% 75% at 40% 40%, #000 35%, transparent 100%);
+  }
+  .glow {
+    position: absolute; width: 820px; height: 380px; left: -120px; top: -170px;
+    background: radial-gradient(closest-side, rgba(91, 141, 255, 0.32), transparent 72%);
+  }
+
+  /* 地图：右下角铺开，压暗做背景 */
+  .map {
+    position: absolute; right: -58px; bottom: 44px; width: 830px; height: 415px;
+    opacity: 0.92;
+    mask-image: linear-gradient(to top, #000 62%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, #000 62%, transparent 100%);
+  }
+  .map::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(60% 60% at 50% 50%, transparent 30%, rgba(5, 7, 14, 0.55) 100%);
+  }
+  .mapsvg { width: 100%; height: 100%; display: block; }
+
+  .wrap { position: relative; width: 1200px; height: 630px; padding: 44px 60px 40px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 15px; }
+  .mark {
+    width: 44px; height: 44px; border-radius: 13px;
+    background: linear-gradient(135deg, #5b8dff, #8b5bff);
+    display: grid; place-items: center; font-size: 24px;
+    box-shadow: 0 8px 22px rgba(91, 141, 255, 0.42);
+  }
+  .brand-name { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; }
+  .brand-sub { font-size: 13px; color: #8b99b6; margin-top: 2px; }
+
+  h1 {
+    margin-top: 34px; font-size: 50px; line-height: 1.1; letter-spacing: -1.4px; font-weight: 750;
+    max-width: 620px;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(100deg, #6ea0ff, #a487ff 58%, #ff8fb1);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { margin-top: 18px; font-size: 16.5px; line-height: 1.55; color: #a8b5cf; max-width: 470px; }
+
+  .stats { display: flex; gap: 38px; margin-top: 34px; }
+  .stat b { display: block; font-size: 30px; font-weight: 700; letter-spacing: -0.8px; }
+  .stat span { font-size: 11.5px; color: #7f8cab; letter-spacing: 0.07em; text-transform: uppercase; }
+
+  .foot {
+    margin-top: auto; position: relative; z-index: 2;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid rgba(120, 145, 190, 0.18); padding-top: 15px;
+  }
+  .url { font-size: 16.5px; font-weight: 650; color: #d5e3ff; letter-spacing: -0.2px; }
+  .badges { display: flex; gap: 8px; }
+  .badge {
+    font-size: 11.5px; padding: 5px 11px; border-radius: 999px;
+    border: 1px solid rgba(120, 145, 190, 0.28); color: #93a2c0; background: rgba(8, 12, 22, 0.7);
+  }
+  .badge.hot { border-color: rgba(255, 90, 95, 0.42); color: #ff9b9e; }
+  .badge.cool { border-color: rgba(53, 211, 154, 0.38); color: #7fe3bd; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow"></div>
+  <div class="map"><!--MAP--></div>
+
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark">🌍</div>
+      <div>
+        <div class="brand-name">Trends World</div>
+        <div class="brand-sub">Daily top trends · one click to the source</div>
+      </div>
+    </div>
+
+    <h1>The hottest topic of the day in <em>every country</em> on Earth.</h1>
+    <p class="lead">One map, 176 countries and regions, each linked straight to the original source.</p>
+
+    <div class="stats">
+      <div class="stat"><b>176</b><span>Countries</span></div>
+      <div class="stat"><b>1,700+</b><span>Topics / day</span></div>
+      <div class="stat"><b>3h</b><span>Refresh</span></div>
+    </div>
+
+    <div class="foot">
+      <div class="url">trends-world.pages.dev</div>
+      <div class="badges">
+        <span class="badge hot">● Trending now</span>
+        <span class="badge cool">No cookies</span>
+        <span class="badge">Open source</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
