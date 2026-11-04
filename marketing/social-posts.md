@@ -117,3 +117,67 @@ Code is here: https://github.com/kioolfranrip-glitch/trend-radar
 3. 隔 1–2 天 → Show HN（不要同一天三处齐发）
 
 **同一天在多个平台发同一个链接是刷量特征**，会被降权。慢一点反而快。
+
+---
+
+# Hacker News 实测数据与修订策略（2026-11-04）
+
+## 现状数据
+
+Show HN 首页分数分布（当天抓取）：
+
+```
+1843 分  HackerBooks – books mentioned on HN
+ 817 分  Subvocal – talk to your computer without making noise
+ 456 分  Hacker Times – HN-inspired version of Hacker News
+ 323 分  HackerTV – HN's most-recommended YouTube videos
+ 318 分  Warsaw in voxels – interactive 3D map
+  93 分  Kairos – risk/fraud decisioning
+   3 分  Dryplate – image tools in the browser, no upload
+   2 分  Headline Redline – track changes in news headlines
+```
+
+`/newest` 最新 30 条投稿：**25 条 ≤3 分，最高 35 分**。
+
+## 两个直接相关的反例
+
+| 帖子 | 分数 | 说明 |
+|---|---|---|
+| `Dryplate – Image tools that run in the browser, no upload` | 3 分 | 「浏览器本地处理」这个卖点对 HN 无效（imgpress 的定位） |
+| `Headline Redline – track changes in News Headlines` | 2 分 | 「新闻话题追踪」对 HN 同样无效（trends-world 的方向） |
+
+**结论：拿产品定位去发 Show HN，预期 2–10 分。**
+
+## 修订后的策略：不发 Show HN，改投 dev.to 那篇技术文
+
+赢家共同点：视觉冲击（Warsaw in voxels）、HN 自我指涉（Hacker* 系列）、反直觉交互（Subvocal）。
+「我做了一个热搜地图」不占任何一条。
+
+但**「我踩到的四个坑」是 HN 的标准内容形态**。所以：
+
+1. 先发 dev.to 技术文（`marketing/devto-post-single-link.md`）
+2. 隔 1–2 天，把**那篇 dev.to 文章**作为普通 story 提交到 HN
+
+提交标题就用文章标题（HN 会自动显示域名 dev.to，读者一眼知道是技术长文）：
+
+```
+I built a 176-country trends aggregator that runs entirely on GitHub Actions
+```
+
+**为什么这比 Show HN 强**：Show HN 是「求你看我的产品」，普通 story 是「这篇东西值得读」。前者防守，后者进攻。而且文章里四个问题（302 限流、软 404、Pages 的 308、CSP 吃掉统计）每一个都是 HN 认得的真实工程细节。
+
+如果非要做 Show HN，标题用发现视角而不是产品视角：
+
+```
+Show HN: A map of what every country is searching for right now
+```
+
+但优先级低于上面那条。
+
+## 操作要点
+
+- **时间**：北京时间 20:00–22:00（美东 7–9 点）周一至周四
+- **发完立刻自己写一条评论**：交代数据来源、Google 只覆盖 122 国、以及聚类用的朴素 token 重叠（不要假装用了语义模型）。这条评论本身就是内容，会被单独投票
+- **前两小时守在评论区**：分数/时间的衰减公式决定了开局两小时定生死
+- **绝对不要**：找人群点赞（投票环检测直接封号）、同一天多平台齐发
+- **如果显示 `[dead]`**：说明被自动判定为 spam，删掉、隔几天换标题重发
