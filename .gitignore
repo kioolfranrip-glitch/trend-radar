@@ -18,3 +18,8 @@ node_modules/
 # 临时抓取的分析素材
 art.html
 art.txt
+
+# 分析/渲染用的临时文件
+/_*.html
+/_*.json
+/public/_*.html
