@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TrendStore } from '../server/store.mjs';
 import { buildPulse } from './cluster.mjs';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -214,6 +215,15 @@ console.log(`Global Pulse：${pulse.stories} 条跨国故事（覆盖 ${pulse.cl
 for (const c of pulse.clusters.slice(0, 3)) console.log(`  · ${c.count} 国  ${c.title}`);
 if (kept.length) console.log(`沿用旧数据：${kept.length} 个（${kept.join(',')}）`);
 if (failed.length) console.log(`无数据：${failed.length} 个（${failed.join(',')}）`);
+
+// 生成 20 个国家真路由页 + sitemap（让 Google 能读到不靠 JS 的静态内容）
+try {
+  execFileSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'country-pages.mjs')], {
+    stdio: 'inherit',
+  });
+} catch (err) {
+  console.error('WARN: 国家页生成失败，继续发布（站点主体不受影响）:', err.message);
+}
 
 // 全站一条数据都没有 → 判定为失败，避免把空站发出去
 if (withData === 0) {
