@@ -24,7 +24,7 @@ const STOPWORDS = new Set([
 const GENERIC = new Set([
   'weather', 'sports', 'sport', 'lottery', 'lotto', 'news', 'results', 'result',
   'score', 'scores', 'live', 'tv', 'film', 'movie', 'music', 'game', 'match',
-  'traffic', 'horoscope', 'poll', 'election', 'الطقس', 'погода', 'laululahing',
+  'traffic', 'horoscope', 'poll', 'الطقس', 'погода', 'laululahing',
   'contrat', 'jugador', 'police', 'полиција', 'geisterfahrer',
 ]);
 
@@ -38,13 +38,19 @@ function normalize(title) {
     .trim();
 }
 
+function stem(word) {
+  // 极轻量词干化：只处理复数，避免 elections/election 这种同一件事被拆成两簇
+  if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
+  return word;
+}
+
 function tokensOf(title) {
   const parts = normalize(title).split(' ').filter(Boolean);
   const out = new Set();
   for (const p of parts) {
     if (p.length < 2) continue;
     if (STOPWORDS.has(p)) continue;
-    out.add(p);
+    out.add(stem(p));
   }
   return out;
 }
@@ -72,10 +78,14 @@ function parseTraffic(value) {
  * @param {Array<{iso:string, nameEn:string, nameZhShort:string, source:string, topic:object}>} rows
  * @param {{threshold?:number, minCountries?:number, limit?:number}} opts
  */
+const normKey = (title) => normalize(title).replace(/\s+/g, ' ').trim();
+
 export function buildPulse(rows, opts = {}) {
   const threshold = opts.threshold ?? 0.55;
   const minCountries = opts.minCountries ?? 2;
-  const limit = opts.limit ?? 20;
+  const limit = opts.limit ?? 10;
+  // 这些短语同时出现在多国榜单里，通常只是同一个泛词的本地化变体，不构成跨国新闻
+  const NOISE = /^(radio online|online radio|democratic party|radio|online|live score|table|standings)$/;
 
   const multi = [];
   const single = [];
@@ -158,7 +168,7 @@ export function buildPulse(rows, opts = {}) {
   }
 
   const out = clusters
-    .filter((c) => c.countries.size >= minCountries)
+    .filter((c) => c.countries.size >= minCountries && !NOISE.test(normKey(c.title)))
     .map((c) => {
       const countries = [...c.countries];
       const sources = {};
