@@ -168,13 +168,13 @@ function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, relate
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(description)}" />
 <meta property="og:url" content="${canonical}" />
-<meta property="og:image" content="${SITE}/og.png" />
+<meta property="og:image" content="${SITE}/og-light.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(description)}" />
-<meta name="twitter:image" content="${SITE}/og.png" />
+<meta name="twitter:image" content="${SITE}/og-light.png" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
 <script type="application/ld+json">${jsonld}</script>
 <style>

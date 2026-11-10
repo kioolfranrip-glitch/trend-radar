@@ -37,21 +37,25 @@ for (const feature of geo.features) {
 const mapSvg = `<svg class="mapsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
   <defs>
     <linearGradient id="landfill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#2f6bd8" stop-opacity="0.30"/>
-      <stop offset="55%" stop-color="#5b8dff" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#8b5bff" stop-opacity="0.10"/>
+      <stop offset="0%" stop-color="#d3c7ac"/>
+      <stop offset="60%" stop-color="#c8bb9c"/>
+      <stop offset="100%" stop-color="#bcae8d"/>
     </linearGradient>
   </defs>
+  <rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="#e8efec"/>
   <g>
-    <path d="${d}" fill="url(#landfill)" stroke="#7aa8ff" stroke-opacity="0.55" stroke-width="0.7" stroke-linejoin="round"/>
+    <path d="${d}" fill="url(#landfill)" stroke="#b9ad95" stroke-opacity="0.9" stroke-width="0.7" stroke-linejoin="round"/>
   </g>
-  ${[...Array(7)].map((_, i) => `<line x1="0" y1="${(i + 1) * (H / 8)}" x2="${W}" y2="${(i + 1) * (H / 8)}" stroke="#7aa8ff" stroke-opacity="0.07" stroke-width="0.8"/>`).join('')}
-  ${[...Array(9)].map((_, i) => `<line x1="${(i + 1) * (W / 10)}" y1="0" x2="${(i + 1) * (W / 10)}" y2="${H}" stroke="#7aa8ff" stroke-opacity="0.07" stroke-width="0.8"/>`).join('')}
+  ${[...Array(7)].map((_, i) => `<line x1="0" y1="${(i + 1) * (H / 8)}" x2="${W}" y2="${(i + 1) * (H / 8)}" stroke="#171410" stroke-opacity="0.05" stroke-width="0.8"/>`).join('')}
+  ${[...Array(9)].map((_, i) => `<line x1="${(i + 1) * (W / 10)}" y1="0" x2="${(i + 1) * (W / 10)}" y2="${H}" stroke="#171410" stroke-opacity="0.05" stroke-width="0.8"/>`).join('')}
 </svg>`;
 
 const template = fs.readFileSync(path.join(ROOT, 'tools', 'og-card.html'), 'utf8');
 if (!template.includes('<!--MAP-->')) throw new Error('模板里缺少 <!--MAP--> 占位符');
-const html = template.replace('<!--MAP-->', mapSvg);
+let html = template.replace('<!--MAP-->', mapSvg);
+if (process.env.DEBUG_BOX === '1') {
+  html = html.replace('</head>', '<style>body{box-shadow:inset 0 0 0 4px #ff00ff}</style>\n</head>');
+}
 
 fs.writeFileSync(path.join(ROOT, 'public', '_og-card.html'), html);
-console.log(`内联地图 ${(d.length / 1024).toFixed(0)}KB · 写出 public/_og-card.html`);
+console.log(`内联地图 ${(d.length / 1024).toFixed(0)}KB · 写出 public/_og-card.html · debug=${process.env.DEBUG_BOX === '1'}`);
