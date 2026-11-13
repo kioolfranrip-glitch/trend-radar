@@ -12,11 +12,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readHistory, diffTopics, dailyLeaders, normalize } from './history.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
 const DATA = path.join(PUBLIC, 'data');
 const SITE = process.env.SITE_URL || 'https://trends-world.pages.dev';
+const CACHE_DIR = path.join(ROOT, 'data', 'cache');
 
 /** 先验证这 20 个（覆盖主要语言区 + 搜索体量大的市场） */
 export const TARGETS = [
@@ -67,7 +69,16 @@ const sourceNote = (source, name) => {
   }
 };
 
-function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, related, pulse }) {
+/** 变化标记：新进榜 / 上升 / 下降 */
+function deltaBadge(d) {
+  if (!d) return '';
+  if (d.status === 'new') return '<span class="delta d-new">NEW</span>';
+  if (d.status === 'up') return `<span class="delta d-up">▲${d.delta}</span>`;
+  if (d.status === 'down') return `<span class="delta d-down">▼${d.delta}</span>`;
+  return '';
+}
+
+function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, related, pulse, days }) {
   const name = country?.nameEn || iso;
   const slug = iso.toLowerCase();
   const canonical = `${SITE}/country/${slug}/`;
@@ -79,6 +90,11 @@ function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, relate
   // 用前三条拼一个真正属于这个国家的问题答案（避免 20 个页面共用同一段文案）
   const topThree = topics.slice(0, 3).map((t) => t.title).filter(Boolean);
 
+  // 只有存在更早一天时才显示变化标记，否则整屏都是 NEW 反而误导
+  const canDiff = (days?.length || 0) >= 2;
+  const diffs = canDiff ? diffTopics(topics, days) : new Map();
+  const leaders = canDiff ? dailyLeaders(days).slice(-7) : [];
+
   const listHtml = topics
     .map(
       (t) => `        <li class="topic">
@@ -88,6 +104,7 @@ function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, relate
             <div class="topic-meta">
               ${t.traffic ? `<span class="traffic">${esc(t.traffic)} searches</span>` : ''}
               <span class="src">${esc(t.sourceLabel || sourceLabel || '')}</span>
+              ${deltaBadge(diffs.get(normalize(t.title)))}
             </div>
           </div>
         </li>`,
@@ -206,6 +223,16 @@ function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, relate
   .traffic{color:#1f5a47;font-variant-numeric:tabular-nums}
   section.card{margin-top:30px;padding:18px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0;background:#fff}
   section.card h2{font-family:var(--serif);font-size:16px;margin-bottom:8px;font-weight:600}
+  .delta{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:2px;border:1px solid currentColor;line-height:1.35}
+  .d-new{color:#c1402a}
+  .d-up{color:#1f5a47}
+  .d-down{color:#6e6659}
+  .leaders{list-style:none;margin-top:6px}
+  .leaders li{display:flex;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .leaders li:last-child{border-bottom:none}
+  .leaders time{flex:0 0 88px;color:var(--dim);font-size:11.5px;font-variant-numeric:tabular-nums}
+  .leaders span{flex:1;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .leaders em{font-style:normal;color:var(--dim);font-size:11.5px}
   section.card p{font-size:14px;color:var(--muted)}
   .related{margin-top:30px;font-size:13.5px;color:var(--muted);line-height:2}
   footer{margin-top:38px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
@@ -229,6 +256,13 @@ ${topics.length ? `    <ol class="topics">\n${listHtml}\n    </ol>` : '    <p cl
 
 ${pulseHtml}
 
+${leaders.length ? `    <section class="card">
+      <h2>The top topic on previous days</h2>
+      <ul class="leaders">
+${leaders.map((l) => `        <li><time datetime="${l.date}">${l.date}</time><span>${esc(l.title)}</span>${l.traffic ? `<em>${esc(l.traffic)}</em>` : ''}</li>`).join('\n')}
+      </ul>
+    </section>
+` : ''}
     <section class="card">
       <h2>How this snapshot is built</h2>
       <p>Every three hours an automated job collects the day's top topic for ${esc(name)} and 175 other countries and regions, then publishes the result as static files. Nothing here is estimated or hand-written: the list above is exactly what the source returned on ${esc(fmtDate(updatedAt))}, and every row links to the original article or result page.</p>
@@ -287,6 +321,8 @@ for (const iso of targets) {
     .slice(0, 8)
     .map((c) => ({ iso: c.iso, name: c.nameEn }));
 
+  const days = readHistory(CACHE_DIR, iso);
+
   const story =
     pulse?.clusters?.find((cl) => cl.countries?.includes(iso)) || null;
 
@@ -299,6 +335,7 @@ for (const iso of targets) {
     sourceLabel,
     related,
     pulse: story ? { title: story.title, count: story.count } : null,
+    days,
   });
 
   const dir = path.join(PUBLIC, 'country', iso.toLowerCase());

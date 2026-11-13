@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TrendStore } from '../server/store.mjs';
 import { buildPulse } from './cluster.mjs';
+import { appendHistory, MAX_DAYS } from './history.mjs';
 import { execFileSync } from 'node:child_process';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -35,6 +36,7 @@ const arg = (name, fallback = null) => {
 
 const OUT_DIR = path.resolve(ROOT, arg('out', 'public/data'));
 const DETAIL_DIR = path.join(OUT_DIR, 'details');
+const CACHE_DIR = path.join(ROOT, 'data', 'cache'); // 与 store 一致，且被 actions/cache 缓存
 const JOBS = Math.max(1, Number(arg('jobs', '4')));
 const ONLY = arg('only');
 const proxyArg = argv.find((a) => a.startsWith('--proxy='));
@@ -122,6 +124,7 @@ const sourceCount = {};
 const failed = [];
 const kept = [];
 let withData = 0;
+let historyDays = 0;
 
 for (const country of targets) {
   const data = results.get(country.iso);
@@ -136,6 +139,14 @@ for (const country of targets) {
       topics: data.topics.map((t) => ({ ...t, sourceLabel: canonicalLabel(t.source, t.sourceLabel, country) })),
     };
     fs.writeFileSync(detailPath, JSON.stringify(payload));
+    // 每日快照：国家页靠它显示「新进榜 / 上升 / 下降」和近期榜首变化
+    historyDays += appendHistory({
+      cacheDir: CACHE_DIR,
+      iso: country.iso,
+      topics: payload.topics,
+      source: payload.source,
+      at: payload.updatedAt,
+    }).length > 0 ? 1 : 0;
     board.push({
       iso: country.iso,
       source: payload.source,
@@ -211,6 +222,7 @@ fs.writeFileSync(
 console.log('');
 console.log(`完成：${withData}/${targets.length} 有数据，用时 ${meta.tookSeconds}s`);
 console.log('来源分布：', JSON.stringify(sourceCount));
+console.log(`历史快照：${historyDays} 国已写入（保留最近 ${MAX_DAYS} 天）`);
 console.log(`Global Pulse：${pulse.stories} 条跨国故事（覆盖 ${pulse.clusters.reduce((n, c) => n + c.count, 0)} 个国家）`);
 for (const c of pulse.clusters.slice(0, 3)) console.log(`  · ${c.count} 国  ${c.title}`);
 if (kept.length) console.log(`沿用旧数据：${kept.length} 个（${kept.join(',')}）`);
