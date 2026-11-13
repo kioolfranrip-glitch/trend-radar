@@ -1487,3 +1487,74 @@ a:hover { color: var(--ink); }
   color: var(--ink) !important;
   border-radius: 2px !important;
 }
+
+/* ---------------- Global pulse：可展开的国家清单 ---------------- */
+
+.pulse.expanded {
+  background: #fbf8f2 !important;
+  border-color: var(--line-strong) !important;
+}
+
+/* 展开时收起摘要 chips，避免和完整清单重复 */
+.pulse.expanded > .pulse-chips { display: none !important; }
+
+.pulse-head {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.pulse-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.pulse-head .chev {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--dim);
+  margin-top: 3px;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+.pulse.expanded .pulse-head .chev { transform: rotate(180deg); color: var(--accent); }
+
+.pulse-detail {
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px dashed var(--line);
+}
+.pulse-all {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pulse-pick {
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.pulse-pick:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+}
+.pulse-actions { margin-top: 11px; }
+.pulse-src {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.pulse-src:hover { text-decoration: underline; }

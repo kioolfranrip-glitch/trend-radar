@@ -36,6 +36,7 @@ const state = {
   meta: null,
   pulse: null,
   detailTab: 'pulse',
+  pulseOpen: null,
   generatedAt: 0,
 };
 
@@ -483,7 +484,8 @@ function renderTicker() {
 }
 
 /** 右侧未选国家时的「全球此刻」：跨国故事 + 按搜索量排序两种视角 */
-function pulseItemHtml(c, rank) {
+function pulseItemHtml(c, rank, idx) {
+  const open = state.pulseOpen === idx;
   const chips = c.countries
     .slice(0, 8)
     .map((iso) => {
@@ -494,14 +496,34 @@ function pulseItemHtml(c, rank) {
   const more =
     c.countries.length > 8 ? `<span class="pulse-chip more">+${c.countries.length - 8}</span>` : '';
   const href = c.url || `https://www.google.com/search?q=${encodeURIComponent(c.title)}`;
+
+  // 展开后：完整的国家清单，每个都能跳到该国的详情面板
+  const all = open
+    ? `<div class="pulse-detail">
+        <div class="pulse-all">
+          ${c.countries
+            .map((iso) => {
+              const cc = state.byIso.get(iso);
+              const name = escapeHtml(cc?.nameZhShort || iso);
+              return `<a class="pulse-pick" href="#/${iso}" title="${name}">${flagEmoji(iso)} ${name}</a>`;
+            })
+            .join('')}
+        </div>
+        <div class="pulse-actions">
+          <a class="pulse-src" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">Open the source ↗</a>
+        </div>
+      </div>`
+    : '';
+
   return `
-      <li class="pulse ${rank <= 3 ? `top${rank}` : ''}">
-        <a class="pulse-head" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">
+      <li class="pulse ${rank <= 3 ? `top${rank}` : ''} ${open ? 'expanded' : ''}">
+        <button class="pulse-head" data-action="pulse-toggle" data-idx="${idx}" aria-expanded="${open}">
           <span class="pulse-count"><b>${c.count}</b><small>countries</small></span>
           <span class="pulse-title">${escapeHtml(c.title)}</span>
-          <svg class="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <div class="pulse-chips">${chips}${more}</div>
+        ${all}
       </li>`;
 }
 
@@ -574,7 +596,7 @@ function renderGlobalPulse() {
 
   const covered = clusters.reduce((n, c) => n + c.count, 0);
   const list = clusters.length
-    ? `<ul class="pulse-list">${clusters.map((c, i) => pulseItemHtml(c, i + 1)).join('')}</ul>`
+    ? `<ul class="pulse-list">${clusters.map((c, i) => pulseItemHtml(c, i + 1, i)).join('')}</ul>`
     : `<p class="pulse-empty">No story is trending in two or more countries right now. Check the
          <button class="linkish" data-action="tab" data-tab="top">country ranking</button> instead.</p>`;
 
@@ -762,8 +784,15 @@ window.__tw = {
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
+  if (btn.dataset.action === 'pulse-toggle') {
+    const idx = Number(btn.dataset.idx);
+    state.pulseOpen = state.pulseOpen === idx ? null : idx;
+    renderGlobalPulse();
+    return;
+  }
   if (btn.dataset.action === 'tab') {
     state.detailTab = btn.dataset.tab === 'top' ? 'top' : 'pulse';
+    state.pulseOpen = null;
     renderGlobalPulse();
     return;
   }
