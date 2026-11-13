@@ -12,6 +12,13 @@ const isoOf = p => {
 };
 
 // 中文简称（地图与卡片用简称，详情页用全名）
+
+/** 中性短名：避免在面向全球的站点上使用带政治含义的正式国名 */
+const NEUTRAL_NAMES = {
+  TW: '台湾', CN: '中国', KP: '朝鲜', KR: '韩国', AE: '阿联酋',
+  HK: '中国香港', MO: '中国澳门', US: '美国', GB: '英国', RU: '俄罗斯',
+};
+
 const nameZhShort = {
   CN:'中国', US:'美国', GB:'英国', KR:'韩国', KP:'朝鲜', RU:'俄罗斯', JP:'日本', IN:'印度',
   TW:'中国台湾', HK:'中国香港', MO:'中国澳门', AE:'阿联酋', CZ:'捷克', NL:'荷兰', CH:'瑞士',
@@ -47,8 +54,8 @@ for (const f of ne.features) {
     iso,
     iso3: p.ADM0_A3,
     nameEn: p.NAME_EN || p.ADMIN,
-    nameZh: p.NAME_ZH || p.NAME_EN,
-    nameZhShort: nameZhShort[iso] || p.NAME_ZH || p.NAME_EN,
+    nameZh: NEUTRAL_NAMES[iso] || p.NAME_ZH || p.NAME_EN,
+    nameZhShort: NEUTRAL_NAMES[iso] || nameZhShort[iso] || p.NAME_ZH || p.NAME_EN,
     nameLocal: p.ADMIN,
     continent: p.CONTINENT,
     subregion: p.SUBREGION,

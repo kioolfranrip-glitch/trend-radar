@@ -243,7 +243,7 @@ function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, relate
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
-    <nav><a href="/">World map</a><a href="/about/">About</a><a href="/privacy/">Privacy</a></nav>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/about/">About</a><a href="/feed.xml">RSS</a></nav>
   </header>
 
   <main>
@@ -291,6 +291,124 @@ function buildSitemap(entries) {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls}
 </urlset>
+`;
+}
+
+
+
+/* ---------------- 全量国家索引页 /countries/ ---------------- */
+
+function buildCountriesIndex({ countries, boardByIso, targets }) {
+  const rows = [...countries]
+    .sort((a, b) => (a.nameEn || '').localeCompare(b.nameEn || ''))
+    .map((c) => {
+      const row = boardByIso.get(c.iso);
+      const top = row?.top;
+      const hasPage = targets.includes(c.iso);
+      const href = hasPage ? `/country/${c.iso.toLowerCase()}/` : `/#/${c.iso}`;
+      const source = top?.sourceLabel || '';
+      return `      <li>
+        <a class="c" href="${href}">${esc(c.nameEn || c.iso)}</a>
+        <span class="t">${top?.title ? esc(top.title) : '<em>no data</em>'}</span>
+        <span class="s">${esc(source)}</span>
+      </li>`;
+    })
+    .join('\n');
+
+  const withData = countries.filter((c) => boardByIso.get(c.iso)?.top).length;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>What's trending in every country — Trends World</title>
+<meta name="description" content="Today's top topic for ${countries.length} countries and regions, in one plain list. ${withData} have data right now. Updated every 3 hours." />
+<link rel="canonical" href="${SITE}/countries/" />
+<meta name="theme-color" content="#080b16" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="What's trending in every country — Trends World" />
+<meta property="og:description" content="Today's top topic for ${countries.length} countries and regions." />
+<meta property="og:url" content="${SITE}/countries/" />
+<meta property="og:image" content="${SITE}/og-light.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="alternate" type="application/atom+xml" title="Trends World" href="${SITE}/feed.xml" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--paper:#f7f4ed;--ink:#171410;--muted:#6e6659;--dim:#9b9284;--line:rgba(23,20,16,.13);--accent:#c1402a;
+        --serif:"Iowan Old Style",Palatino,Georgia,"Songti SC",serif}
+  body{background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:900px;margin:0 auto;padding:30px 20px 60px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .mark{width:30px;height:30px;border-radius:4px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+  h1{font-family:var(--serif);font-size:clamp(24px,4vw,34px);line-height:1.18;font-weight:600;letter-spacing:-.5px}
+  .lead{margin-top:10px;color:var(--muted);font-size:14.5px}
+  ul{list-style:none;margin-top:22px}
+  li{display:flex;gap:14px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+  .c{flex:0 0 210px;font-weight:600;font-size:14px}
+  .c:hover{color:var(--accent)}
+  .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:#2b2620}
+  .t em{color:var(--dim);font-style:normal}
+  .s{flex:0 0 110px;text-align:right;font-size:11.5px;color:var(--dim)}
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
+  @media(max-width:620px){li{flex-wrap:wrap;gap:4px}.c{flex:1 0 100%}.s{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
+    <nav><a href="/">World map</a><a href="/about/">About</a><a href="/feed.xml">RSS</a></nav>
+  </header>
+  <main>
+    <h1>What's trending in every country</h1>
+    <p class="lead">Today's top topic for ${countries.length} countries and regions — ${withData} have data in the current snapshot. Every row links to the country's page or its place on the map.</p>
+    <ul>
+${rows}
+    </ul>
+  </main>
+  <footer>
+    <a href="/">World map</a><a href="/countries/">All countries</a><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/feed.xml">RSS</a>
+    <span>Content rights belong to the original sources.</span>
+  </footer>
+</div>
+</body>
+</html>
+`;
+}
+
+/* ---------------- Atom feed ---------------- */
+
+function buildFeed({ clusters, generatedAt, countries }) {
+  const updated = new Date(generatedAt || Date.now()).toISOString();
+  const items = (clusters || []).slice(0, 12).map((c) => {
+    const names = c.countries.slice(0, 6).map((iso) => iso).join(', ');
+    const summary = `Trending as the #1 topic in ${c.count} ${c.count === 1 ? 'country' : 'countries'} (${names}${c.countries.length > 6 ? ', …' : ''}).`;
+    const link = c.url || `${SITE}/`;
+    return `  <entry>
+    <title>${esc(c.title)}</title>
+    <link href="${esc(link)}"/>
+    <id>${SITE}/pulse/${encodeURIComponent(c.title).slice(0, 80)}</id>
+    <updated>${updated}</updated>
+    <summary>${esc(summary)}</summary>
+  </entry>`;
+  }).join('\n');
+
+  return `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Trends World — stories trending in several countries</title>
+  <subtitle>The same topic topping the search list in more than one country, refreshed every 3 hours.</subtitle>
+  <link href="${SITE}/feed.xml" rel="self"/>
+  <link href="${SITE}/"/>
+  <id>${SITE}/</id>
+  <updated>${updated}</updated>
+  <author><name>Trends World</name></author>
+${items}
+</feed>
 `;
 }
 
@@ -347,6 +465,7 @@ for (const iso of targets) {
 // sitemap：主页 + 说明页 + 国家页，保证与实际生成的文件一致
 const entries = [
   { path: '/', lastmod, changefreq: 'hourly', priority: '1.0' },
+  { path: '/countries/', lastmod, changefreq: 'daily', priority: '0.9' },
   { path: '/about/', lastmod, changefreq: 'monthly', priority: '0.6' },
   { path: '/security/', lastmod, changefreq: 'yearly', priority: '0.3' },
   { path: '/privacy/', lastmod, changefreq: 'yearly', priority: '0.3' },
@@ -354,6 +473,22 @@ const entries = [
   ...written,
 ];
 fs.writeFileSync(path.join(PUBLIC, 'sitemap.xml'), buildSitemap(entries));
+
+// 全量国家索引页（176 行纯 HTML 内链）
+const boardByIso = new Map((board?.countries || []).map((b) => [b.iso, b]));
+const indexDir = path.join(PUBLIC, 'countries');
+fs.mkdirSync(indexDir, { recursive: true });
+fs.writeFileSync(
+  path.join(indexDir, 'index.html'),
+  buildCountriesIndex({ countries, boardByIso, targets }),
+);
+
+// Atom feed
+fs.writeFileSync(
+  path.join(PUBLIC, 'feed.xml'),
+  buildFeed({ clusters: pulse?.clusters || [], generatedAt: updatedAt, countries }),
+);
+console.log('附带产物：/countries/index.html、/feed.xml');
 
 console.log(`国家页：生成 ${written.length} 个（${written.map((w) => w.iso).join(', ')}）`);
 console.log(`sitemap.xml：${entries.length} 条 URL，lastmod ${lastmod}`);

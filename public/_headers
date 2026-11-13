@@ -36,3 +36,7 @@
 
 /og-light.png
   Cache-Control: public, max-age=86400
+
+/feed.xml
+  Content-Type: application/atom+xml; charset=utf-8
+  Cache-Control: public, max-age=1800
