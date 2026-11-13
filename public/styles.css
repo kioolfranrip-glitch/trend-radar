@@ -1550,7 +1550,7 @@ a:hover { color: var(--ink); }
   color: var(--accent);
   text-decoration: none;
 }
-.pulse-actions { margin-top: 11px; }
+.pulse-actions { margin-top: 11px; display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; }
 .pulse-src {
   font-size: 12.5px;
   font-weight: 600;

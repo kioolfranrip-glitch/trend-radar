@@ -412,6 +412,212 @@ ${items}
 `;
 }
 
+
+
+/* ---------------- 话题详情页 /topic/<slug>/ ---------------- */
+
+function buildTopicPage({ cluster, members, updatedAt }) {
+  const slug = cluster.slug;
+  const canonical = `${SITE}/topic/${slug}/`;
+  const n = members.length;
+  const title = `${cluster.title} — trending in ${n} ${n === 1 ? 'country' : 'countries'}`;
+  const description = `On ${fmtDate(updatedAt)}, "${cluster.title}" was the top trending topic in ${n} places: ${members
+    .slice(0, 6)
+    .map((m) => m.name)
+    .join(', ')}${n > 6 ? '…' : ''}. Each entry links to its original source.`;
+
+  const rows = members
+    .map((m) => {
+      const href = m.hasPage ? `/country/${m.iso.toLowerCase()}/` : `/#/${m.iso}`;
+      return `      <li>
+        <a class="c" href="${href}">${flagOf(m.iso)} ${esc(m.name)}</a>
+        <span class="s">${m.traffic ? esc(m.traffic) + ' searches' : esc(m.sourceLabel || '')}</span>
+        ${m.url ? `<a class="src" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">source ↗</a>` : '<span class="src muted">no link</span>'}
+      </li>`;
+    })
+    .join('\n');
+
+  const jsonld = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Trends World', item: `${SITE}/` },
+          { '@type': 'ListItem', position: 2, name: cluster.title, item: canonical },
+        ],
+      },
+      {
+        '@type': 'ItemList',
+        name: `Places where "${cluster.title}" was the top trending topic`,
+        numberOfItems: n,
+        itemListElement: members.map((m, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: m.name,
+          ...(m.url ? { url: m.url } : {}),
+        })),
+      },
+    ],
+  });
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}" />
+<link rel="canonical" href="${canonical}" />
+<meta name="theme-color" content="#080b16" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Trends World" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(description)}" />
+<meta property="og:url" content="${canonical}" />
+<meta property="og:image" content="${SITE}/og-light.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<script type="application/ld+json">${jsonld}</script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--paper:#f7f4ed;--ink:#171410;--muted:#6e6659;--dim:#9b9284;--line:rgba(23,20,16,.13);--accent:#c1402a;
+        --serif:"Iowan Old Style",Palatino,Georgia,"Songti SC",serif}
+  body{background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .mark{width:30px;height:30px;border-radius:4px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+  .crumb{font-size:12px;color:var(--dim);margin-bottom:10px}
+  h1{font-family:var(--serif);font-size:clamp(24px,4.2vw,36px);line-height:1.18;letter-spacing:-.5px;font-weight:600;overflow-wrap:anywhere}
+  .stamp{margin-top:10px;font-size:13px;color:var(--muted)}
+  .stamp .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2e7d5b;margin-right:6px;vertical-align:middle}
+  .lead{margin-top:16px;font-size:15px;color:#2b2620}
+  ul{list-style:none;margin-top:20px}
+  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  .c{flex:1;font-weight:600;font-size:15px}
+  .c:hover{color:var(--accent)}
+  .s{flex:0 0 130px;text-align:right;font-size:12px;color:var(--dim)}
+  .src{flex:0 0 78px;text-align:right;font-size:12px;color:var(--accent)}
+  .src.muted{color:var(--dim)}
+  .src:hover{text-decoration:underline}
+  section{margin-top:30px;padding:18px;border:1px solid var(--line);border-left:3px solid var(--accent);background:#fff}
+  section h2{font-family:var(--serif);font-size:16px;margin-bottom:8px;font-weight:600}
+  section p{font-size:14px;color:var(--muted)}
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
+  @media(max-width:620px){li{flex-wrap:wrap;gap:4px}.c{flex:1 0 100%}.s{text-align:left;flex:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/feed.xml">RSS</a></nav>
+  </header>
+  <main>
+    <p class="crumb"><a href="/">World map</a> / <a href="/topics/">Topics</a> / ${esc(cluster.title).slice(0, 60)}</p>
+    <h1>${esc(cluster.title)}</h1>
+    <p class="stamp"><span class="dot"></span><time datetime="${new Date(updatedAt).toISOString()}">${esc(fmtDate(updatedAt))}</time> · #1 trending topic in ${n} ${n === 1 ? 'place' : 'places'}</p>
+    <p class="lead">This single story topped the trending list in ${n} countries and regions at the same time. Each row links to the country's page and to the article that reported it.</p>
+    <ul>
+${rows}
+    </ul>
+    <section>
+      <h2>How this page is built</h2>
+      <p>Every three hours, an automated job records the top trending topic for 176 countries and regions, then groups identical or near-identical headlines together. This page lists one such group. Nothing here is editorial: the match is made by headline similarity, so closely related but distinct stories can occasionally end up together.</p>
+    </section>
+  </main>
+  <footer>
+    <a href="/">World map</a><a href="/countries/">All countries</a><a href="/feed.xml">RSS</a><a href="/about/">About</a>
+    <span>Content rights belong to the original sources.</span>
+  </footer>
+</div>
+</body>
+</html>
+`;
+}
+
+/** ISO → 旗帜 emoji */
+function flagOf(iso) {
+  if (!iso || iso.length !== 2) return '🏳️';
+  return String.fromCodePoint(...[...iso.toUpperCase()].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+}
+
+
+
+/* ---------------- 话题索引 /topics/ ---------------- */
+
+function buildTopicsIndex({ clusters, updatedAt }) {
+  const rows = (clusters || [])
+    .filter((c) => c.slug)
+    .map(
+      (c) => `      <li>
+        <a class="t" href="/topic/${c.slug}/">${esc(c.title)}</a>
+        <span class="n">${c.count} ${c.count === 1 ? 'country' : 'countries'}</span>
+      </li>`,
+    )
+    .join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stories trending in several countries — Trends World</title>
+<meta name="description" content="The topics that topped the trending list in more than one country at the same time, as of ${esc(fmtDate(updatedAt))}." />
+<link rel="canonical" href="${SITE}/topics/" />
+<meta name="theme-color" content="#080b16" />
+<meta property="og:title" content="Stories trending in several countries" />
+<meta property="og:description" content="Topics that hit the #1 trending spot in several countries at once." />
+<meta property="og:image" content="${SITE}/og-light.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="alternate" type="application/atom+xml" title="Trends World" href="${SITE}/feed.xml" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--paper:#f7f4ed;--ink:#171410;--muted:#6e6659;--dim:#9b9284;--line:rgba(23,20,16,.13);--accent:#c1402a;
+        --serif:"Iowan Old Style",Palatino,Georgia,"Songti SC",serif}
+  body{background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .mark{width:30px;height:30px;border-radius:4px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+  h1{font-family:var(--serif);font-size:clamp(24px,4vw,32px);line-height:1.2;font-weight:600;letter-spacing:-.5px}
+  .lead{margin-top:10px;color:var(--muted);font-size:14.5px}
+  ul{list-style:none;margin-top:22px}
+  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  .t{flex:1;font-weight:600;font-size:15px;overflow-wrap:anywhere}
+  .t:hover{color:var(--accent)}
+  .n{flex:0 0 110px;text-align:right;font-size:12px;color:var(--dim)}
+  footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/feed.xml">RSS</a></nav>
+  </header>
+  <main>
+    <h1>Stories trending in several countries</h1>
+    <p class="lead">The same topic topped the trending list in more than one place at once. Snapshot: ${esc(fmtDate(updatedAt))}.</p>
+    <ul>
+${rows}
+    </ul>
+  </main>
+  <footer>
+    <a href="/">World map</a><a href="/countries/">All countries</a><a href="/feed.xml">RSS</a><a href="/about/">About</a>
+  </footer>
+</div>
+</body>
+</html>
+`;
+}
+
 /* ---------------- main ---------------- */
 
 const countries = readJson(path.join(DATA, 'countries.json'), []);
@@ -482,6 +688,43 @@ fs.writeFileSync(
   path.join(indexDir, 'index.html'),
   buildCountriesIndex({ countries, boardByIso, targets }),
 );
+
+// 话题详情页：每个跨国故事一页
+const byIsoAll = new Map(countries.map((c) => [c.iso, c]));
+let topicCount = 0;
+for (const cluster of pulse?.clusters || []) {
+  if (!cluster.slug) continue;
+  const members = (cluster.countries || []).map((iso) => {
+    const detail = readJson(path.join(DATA, 'details', `${iso}.json`), null);
+    const norm = normalize(cluster.title);
+    const t =
+      (detail?.topics || []).find((x) => normalize(x.title) === norm) || (detail?.topics || [])[0] || null;
+    return {
+      iso,
+      name: byIsoAll.get(iso)?.nameEn || iso,
+      url: t?.url || '',
+      traffic: t?.traffic || '',
+      sourceLabel: t?.sourceLabel || '',
+      hasPage: targets.includes(iso),
+    };
+  });
+  const dir = path.join(PUBLIC, 'topic', cluster.slug);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'index.html'), buildTopicPage({ cluster, members, updatedAt }));
+  entries.push({ path: `/topic/${cluster.slug}/`, lastmod, changefreq: 'daily', priority: '0.7' });
+  topicCount += 1;
+}
+if (topicCount) {
+  const topicsDir = path.join(PUBLIC, 'topics');
+  fs.mkdirSync(topicsDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(topicsDir, 'index.html'),
+    buildTopicsIndex({ clusters: pulse?.clusters || [], updatedAt }),
+  );
+  entries.push({ path: '/topics/', lastmod, changefreq: 'daily', priority: '0.8' });
+  fs.writeFileSync(path.join(PUBLIC, 'sitemap.xml'), buildSitemap(entries));
+  console.log(`话题页：生成 ${topicCount} 个（含 /topics/ 索引）`);
+}
 
 // Atom feed
 fs.writeFileSync(

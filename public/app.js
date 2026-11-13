@@ -510,6 +510,7 @@ function pulseItemHtml(c, rank, idx) {
             .join('')}
         </div>
         <div class="pulse-actions">
+          ${c.slug ? `<a class="pulse-src" href="/topic/${c.slug}/">Topic page →</a>` : ''}
           <a class="pulse-src" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">Open the source ↗</a>
         </div>
       </div>`

@@ -78,6 +78,19 @@ function parseTraffic(value) {
  * @param {Array<{iso:string, nameEn:string, nameZhShort:string, source:string, topic:object}>} rows
  * @param {{threshold?:number, minCountries?:number, limit?:number}} opts
  */
+/**
+ * 话题的稳定 slug：ASCII 短横线形式 + 6 位哈希后缀。
+ * 非拉丁标题（西里尔/阿拉伯/中文）会退化成 topic-<hash>，仍然唯一。
+ */
+export function topicSlug(title) {
+  const full = normalize(title);
+  const base = full.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48).replace(/-+$/, '');
+  let h = 0;
+  for (let i = 0; i < full.length; i += 1) h = (h * 31 + full.charCodeAt(i)) >>> 0;
+  const suffix = h.toString(36).padStart(6, '0').slice(-6);
+  return base ? `${base}-${suffix}` : `topic-${suffix}`;
+}
+
 const normKey = (title) => normalize(title).replace(/\s+/g, ' ').trim();
 
 export function buildPulse(rows, opts = {}) {

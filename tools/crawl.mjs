@@ -21,7 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TrendStore } from '../server/store.mjs';
-import { buildPulse } from './cluster.mjs';
+import { buildPulse, topicSlug } from './cluster.mjs';
 import { appendHistory, MAX_DAYS } from './history.mjs';
 import { execFileSync } from 'node:child_process';
 
@@ -207,6 +207,7 @@ fs.writeFileSync(
     withData,
     stories: pulse.stories,
     clusters: pulse.clusters.map((c) => ({
+      slug: topicSlug(c.title),
       title: c.title,
       countries: c.countries,
       count: c.count,
