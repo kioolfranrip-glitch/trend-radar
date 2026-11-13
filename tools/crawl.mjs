@@ -238,6 +238,15 @@ try {
   console.error('WARN: 国家页生成失败，继续发布（站点主体不受影响）:', err.message);
 }
 
+// 每日快照图（需要 Chrome；找不到就跳过，不影响部署）
+try {
+  execFileSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'daily-image.mjs')], {
+    stdio: 'inherit',
+  });
+} catch (err) {
+  console.error('WARN: 每日快照图生成失败，继续发布:', err.message);
+}
+
 // 全站一条数据都没有 → 判定为失败，避免把空站发出去
 if (withData === 0) {
   console.error('ERROR: 没有抓到任何数据，中止发布');

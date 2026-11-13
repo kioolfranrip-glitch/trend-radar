@@ -44,6 +44,11 @@ jobs:
           restore-keys: |
             trends-cache-
 
+      # 每日快照图需要无头浏览器。只装浏览器二进制，项目本身仍然零依赖。
+      - name: Install headless Chromium
+        continue-on-error: true
+        run: npx --yes playwright@1 install --with-deps chromium
+
       - name: Crawl trends
         env:
           # 可选：在仓库 Secrets 里配 HTTPS_PROXY，让抓取走你的代理
