@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API and data — Trends World</title>
+<meta name="description" content="Every file Trends World publishes, as static JSON. No key, no authentication, no rate limit beyond caches. Includes an MCP server for AI agents." />
+<link rel="canonical" href="https://trends-world.pages.dev/api/" />
+<meta name="theme-color" content="#f7f4ed" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="API and data — Trends World" />
+<meta property="og:description" content="Static JSON for 176 countries and regions. No key required." />
+<meta property="og:url" content="https://trends-world.pages.dev/api/" />
+<meta property="og:image" content="https://trends-world.pages.dev/og-light.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="alternate" type="application/atom+xml" title="Trends World" href="/feed.xml" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --paper:#f7f4ed; --ink:#171410; --muted:#6e6659; --dim:#9b9284;
+    --line:rgba(23,20,16,.13); --accent:#c1402a; --green:#1f5a47;
+    --serif:"Iowan Old Style",Palatino,Georgia,"Songti SC",serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  body{background:var(--paper);color:var(--ink);line-height:1.65;
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 20px 70px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:16px;
+       padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:34px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .mark{width:30px;height:30px;border-radius:4px;background:var(--ink);color:var(--paper);
+        display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+  nav a:hover{color:var(--accent)}
+  h1{font-family:var(--serif);font-size:clamp(26px,4.4vw,38px);line-height:1.16;
+     letter-spacing:-.6px;font-weight:600}
+  .lead{margin-top:12px;color:var(--muted);font-size:15.5px;max-width:640px}
+  h2{font-family:var(--serif);font-size:20px;font-weight:600;margin:38px 0 12px;
+     padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-family:var(--serif);font-size:15.5px;font-weight:600;margin:22px 0 6px}
+  p{margin:10px 0;font-size:14.5px;color:#2b2620}
+  p.muted{color:var(--muted)}
+  code{font-family:var(--mono);font-size:12.5px;background:#fff;border:1px solid var(--line);
+       border-radius:2px;padding:1px 5px}
+  pre{background:#fff;border:1px solid var(--line);border-left:3px solid var(--accent);
+      border-radius:3px;padding:14px 16px;overflow-x:auto;margin:14px 0}
+  pre code{background:none;border:0;padding:0;font-size:12.5px;line-height:1.6;display:block;white-space:pre}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+  th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.05em;text-transform:uppercase;
+     color:var(--dim);padding:8px 10px 8px 0;border-bottom:1px solid var(--line)}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  td code{white-space:nowrap}
+  .tag{display:inline-block;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;
+       padding:2px 6px;border-radius:2px;border:1px solid currentColor;color:var(--green);vertical-align:middle}
+  .note{border-left:3px solid var(--accent);background:#fff;padding:14px 16px;margin:18px 0;
+        font-size:14px;color:#2b2620}
+  .note strong{font-weight:650}
+  ul{margin:10px 0 10px 20px;font-size:14.5px;color:#2b2620}
+  li{margin:6px 0}
+  footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);
+         font-size:12.5px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
+  @media(max-width:620px){table{font-size:12.5px}th,td{padding-right:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/topics/">Topics</a><a href="/feed.xml">RSS</a></nav>
+  </header>
+
+  <main>
+    <h1>API and data</h1>
+    <p class="lead">
+      Everything this site publishes is a static JSON file. No API key, no authentication,
+      no rate limit beyond ordinary caching. The same files feed the website.
+    </p>
+
+    <h2>Endpoints</h2>
+    <table>
+      <thead>
+        <tr><th>Path</th><th>Size</th><th>Contents</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/data/countries.json</code></td>
+          <td>36 KB</td>
+          <td>The 176 places: ISO codes, English and Chinese names, continent, subregion, coordinates, which sources apply.</td>
+        </tr>
+        <tr>
+          <td><code>/data/board.json</code></td>
+          <td>228 KB</td>
+          <td>Top topic per country in the current snapshot — enough to render the map without loading every detail file.</td>
+        </tr>
+        <tr>
+          <td><code>/data/details/&lt;ISO&gt;.json</code></td>
+          <td>~3 KB</td>
+          <td>Full top-10 list for one country, including search-volume bucket, source label and the original article URL.</td>
+        </tr>
+        <tr>
+          <td><code>/data/global.json</code></td>
+          <td>3 KB</td>
+          <td>Cross-border clusters: the same topic topping several countries, each with a <code>slug</code> that maps to <code>/topic/&lt;slug&gt;/</code>.</td>
+        </tr>
+        <tr>
+          <td><code>/data/meta.json</code></td>
+          <td>&lt; 1 KB</td>
+          <td>Generation time, crawl duration, coverage out of 176, source distribution, list of places that failed.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Example</h3>
+<pre><code>curl -s https://trends-world.pages.dev/data/details/JP.json | jq '.topics[:3]'</code></pre>
+
+    <h3>Shape of a topic</h3>
+<pre><code>{
+  "rank": 1,
+  "title": "大腸",
+  "traffic": "1000+",
+  "source": "google-trends",
+  "sourceLabel": "Google Trends",
+  "url": "https://news.yahoo.co.jp/articles/…",
+  "news": [{ "title": "…", "url": "…", "source": "…" }]
+}</code></pre>
+
+    <h2>How to read it without getting it wrong</h2>
+
+    <div class="note">
+      <strong>Sources are not uniform.</strong> <code>google-trends</code> means search interest;
+      <code>bing-news</code> means same-day news interest. They are different measures —
+      always say which one you are quoting instead of adding them together.
+    </div>
+
+    <ul>
+      <li><code>traffic</code> values such as <code>200+</code> are source-side buckets, not measurements. Never present them as an exact number of searches.</li>
+      <li><code>rank</code> is the position within that country's list, not a global score, so two rank-1 topics in different countries are not comparable in size.</li>
+      <li>Cross-border clusters are grouped by <strong>headline similarity</strong>, not geography — a country can land in a cluster whose wording looks unrelated to its own headline.</li>
+      <li>The snapshot is at most a few hours old. Check <code>/data/meta.json</code> before treating anything as "right now".</li>
+      <li>Country and region names use neutral ISO short forms because the site is read internationally.</li>
+    </ul>
+
+    <h2>MCP server <span class="tag">for agents</span></h2>
+    <p>
+      The repository ships a zero-dependency MCP server so an AI agent can query this data
+      without writing HTTP code. Four read-only tools:
+    </p>
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>Arguments</th><th>Returns</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>trending_by_country</code></td><td><code>country</code>, <code>limit</code></td><td>Ranked topics with volume, source and URL</td></tr>
+        <tr><td><code>global_pulse</code></td><td>–</td><td>Stories trending in several countries at once</td></tr>
+        <tr><td><code>search_countries</code></td><td><code>query</code></td><td>Matching countries and their current top topic</td></tr>
+        <tr><td><code>snapshot_status</code></td><td>–</td><td>Freshness, coverage, source mix, failures</td></tr>
+      </tbody>
+    </table>
+
+<pre><code>{
+  "mcpServers": {
+    "trends-world": {
+      "command": "node",
+      "args": ["/path/to/trends-world/mcp/trends-mcp.mjs"]
+    }
+  }
+}</code></pre>
+
+    <p class="muted">
+      Set <code>TRENDS_BASE</code> to point the server at a different deployment.
+      A machine-readable summary of this site for language models is at
+      <a href="/llms.txt"><code>/llms.txt</code></a>.
+    </p>
+
+    <h2>Freshness and updates</h2>
+    <p>
+      GitHub Actions rebuilds the snapshot every three hours and redeploys the static site.
+      Files are served with a one-day cache header, so add a query string when you need the
+      newest copy, for example <code>/data/board.json?t=1731680000</code>.
+    </p>
+    <p class="muted">
+      There is no private or rate-limited tier. If you need a guaranteed-fresh feed or a
+      higher-volume feed, run the crawler yourself — it is in the same repository and needs
+      only Node.js.
+    </p>
+  </main>
+
+  <footer>
+    <a href="/">World map</a>
+    <a href="/countries/">All countries</a>
+    <a href="/topics/">Topics</a>
+    <a href="/feed.xml">RSS</a>
+    <a href="/about/">About</a>
+    <span>Content rights belong to the original sources.</span>
+  </footer>
+</div>
+</body>
+</html>

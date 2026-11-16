@@ -243,7 +243,7 @@ function pageHtml({ iso, country, topics, updatedAt, source, sourceLabel, relate
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
-    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/about/">About</a><a href="/feed.xml">RSS</a></nav>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/api/">API</a><a href="/about/">About</a><a href="/feed.xml">RSS</a></nav>
   </header>
 
   <main>
@@ -514,7 +514,7 @@ function buildTopicPage({ cluster, members, updatedAt }) {
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
-    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/feed.xml">RSS</a></nav>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/api/">API</a><a href="/feed.xml">RSS</a></nav>
   </header>
   <main>
     <p class="crumb"><a href="/">World map</a> / <a href="/topics/">Topics</a> / ${esc(cluster.title).slice(0, 60)}</p>
@@ -600,7 +600,7 @@ function buildTopicsIndex({ clusters, updatedAt }) {
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
-    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/feed.xml">RSS</a></nav>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/api/">API</a><a href="/feed.xml">RSS</a></nav>
   </header>
   <main>
     <h1>Stories trending in several countries</h1>
@@ -672,6 +672,7 @@ for (const iso of targets) {
 const entries = [
   { path: '/', lastmod, changefreq: 'hourly', priority: '1.0' },
   { path: '/countries/', lastmod, changefreq: 'daily', priority: '0.9' },
+  { path: '/api/', lastmod, changefreq: 'weekly', priority: '0.7' },
   { path: '/about/', lastmod, changefreq: 'monthly', priority: '0.6' },
   { path: '/security/', lastmod, changefreq: 'yearly', priority: '0.3' },
   { path: '/privacy/', lastmod, changefreq: 'yearly', priority: '0.3' },

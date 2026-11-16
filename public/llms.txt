@@ -1,0 +1,45 @@
+# Trends World
+
+> The top trending topic in 176 countries and regions, refreshed every three hours.
+> Static JSON, no API key, no authentication, no rate limit beyond caches.
+
+Trends World collects the single hottest topic of the day for each country and region,
+links every entry to the article that reported it, and groups topics that are trending
+in more than one country at once. Content rights belong to the original sources; this
+site only indexes and links.
+
+## Data
+
+- [Country list](https://trends-world.pages.dev/data/countries.json): 176 places with ISO codes, English/Chinese names, continent and coordinates.
+- [Top topic per country](https://trends-world.pages.dev/data/board.json): the headline, source and link for every place in the current snapshot.
+- [Snapshot metadata](https://trends-world.pages.dev/data/meta.json): generation time, coverage out of 176, source distribution, failed places.
+- [Cross-border stories](https://trends-world.pages.dev/data/global.json): clusters of the same topic topping several countries, each with a slug.
+
+Per-country details live at `/data/details/<ISO>.json` (for example
+`https://trends-world.pages.dev/data/details/JP.json`).
+
+## Pages
+
+- [World map](https://trends-world.pages.dev/): all 176 places on a heat map.
+- [All countries](https://trends-world.pages.dev/countries/): plain HTML index with today's top topic per place.
+- [Topics](https://trends-world.pages.dev/topics/): stories trending in several countries.
+- [Feed](https://trends-world.pages.dev/feed.xml): Atom feed of the cross-border stories.
+- [API notes](https://trends-world.pages.dev/api/): endpoint reference with field definitions.
+
+## For agents
+
+An MCP server is included in the repository (`mcp/trends-mcp.mjs`, zero dependencies)
+exposing four read-only tools: `trending_by_country`, `global_pulse`,
+`search_countries`, `snapshot_status`.
+
+Usage rules that matter:
+
+- Sources are not uniform: `google-trends` measures search interest, `bing-news`
+  measures same-day news interest. Name the source when quoting a number.
+- `traffic` values such as `200+` are source-side buckets, not measurements.
+- Clusters are built from headline similarity, so membership is not geographic.
+
+## Optional
+
+- [About](https://trends-world.pages.dev/about/): methodology, sources, coverage gaps, limitations.
+- [Privacy](https://trends-world.pages.dev/privacy/): no accounts, no cookies, only cookieless aggregate counts.

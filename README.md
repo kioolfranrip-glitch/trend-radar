@@ -72,6 +72,9 @@ trends-world/
 │   ├── sources.mjs      各数据源解析器
 │   ├── proxy-agent.mjs  代理探测 + 零依赖 HTTPS CONNECT 隧道
 │   └── index.mjs        本地预览用的静态服务器（线上不用）
+├── mcp/
+│   └── trends-mcp.mjs   零依赖 MCP 服务器（stdio，4 个只读工具）
+├── SKILL.md             agent 技能说明（SKILL.md 标准）
 ├── tools/
 │   ├── crawl.mjs        抓取并导出静态 JSON（CI 与本地共用）
 │   ├── cluster.mjs      跨国故事聚类（Global Pulse）+ 话题 slug
@@ -88,6 +91,8 @@ trends-world/
 │   ├── topic/<slug>/    跨国故事详情页
 │   ├── topics/          当前故事的索引页
 │   ├── daily/           每日快照图 + index.json（latest.png 为稳定入口）
+│   ├── api/             端点文档（给人也给 agent）
+│   ├── llms.txt         给语言模型的站点摘要
 │   ├── feed.xml         Atom 订阅
 │   ├── sitemap.xml      CI 每轮重新生成（当前 37 条 URL）
 │   ├── _headers         CSP / HSTS 等安全响应头
@@ -126,7 +131,59 @@ trends-world/
 > `security.txt` 里的域名是占位符，上线前请全局替换成你自己的。
 > 需要中文版说明页的话，可以照同样结构放到 `/zh/` 下。
 
+## 给 AI agent 用
+
+站点同时是一个**公开数据源**：所有数据都是静态 JSON，无 key、无鉴权、无限流。
+
+```
+/data/countries.json          176 个地方的元数据
+/data/board.json              每国 Top1
+/data/details/<ISO>.json      单国完整热榜
+/data/global.json             跨国故事聚类（带 slug）
+/data/meta.json               快照时间、覆盖率、来源分布
+```
+
+对外入口：
+
+| 路径 | 作用 |
+| --- | --- |
+| `/api/` | 端点文档 + 字段说明 + 常见误读警告 |
+| `/llms.txt` | 给语言模型看的站点摘要（llms.txt 约定） |
+| `mcp/trends-mcp.mjs` | 零依赖 MCP 服务器（stdio） |
+| `SKILL.md` | 仓库根目录的 agent 技能说明 |
+
+### MCP 服务器
+
+`mcp/trends-mcp.mjs` 用标准输入输出讲 JSON-RPC，不依赖任何包：
+
+```json
+{
+  "mcpServers": {
+    "trends-world": {
+      "command": "node",
+      "args": ["/path/to/trends-world/mcp/trends-mcp.mjs"]
+    }
+  }
+}
+```
+
+暴露 4 个只读工具：`trending_by_country`、`global_pulse`、`search_countries`、
+`snapshot_status`。数据走公开接口，带 10 分钟内存缓存；`TRENDS_BASE` 可指向别的部署。
+
+手动测试：
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node mcp/trends-mcp.mjs
+```
+
+### 为什么在文档里反复强调「来源不统一」
+
+agent 很容易把 `google-trends`（搜索兴趣）和 `bing-news`（新闻热度）当成同一个指标
+相加或对比，从而写出错误结论。`/api/`、`llms.txt`、`SKILL.md` 三处都写了这条警告——
+**给机器读的文档，比给人读的更需要写清边界**。
+
 ## 内容策略（为什么站点长这样）
+
 
 这一节记录几次实际踩坑后定下的规则，改动前先读。
 
