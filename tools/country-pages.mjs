@@ -618,6 +618,96 @@ ${rows}
 `;
 }
 
+
+
+/* ---------------- 首页静态内容注入 ---------------- */
+
+/**
+ * 首页原本是纯 JS 渲染，爬虫看到的只有「Drawing the world map…」。
+ * 这里把当天的 TOP5 跨国故事和 12 个国家的 Top1 以纯 HTML 注入，
+ * 让不执行 JS 的访客和爬虫也有内容可读。
+ */
+function buildSeed({ clusters, boardByIso, countries, updatedAt, targets }) {
+  const stamp = fmtDate(updatedAt).replace(/\s*UTC$/, '');
+  const stories = (clusters || []).slice(0, 5);
+  if (!stories.length) return { html: '', empty: true };
+
+  const storyRows = stories
+    .map(
+      (c, i) => `      <li>
+        <a class="seed-story" href="/topic/${c.slug}/">
+          <span class="seed-story-n">${c.count}</span>
+          <span class="seed-story-title">${esc(c.title).slice(0, 88)}</span>
+        </a>
+      </li>`,
+    )
+    .join('\n');
+
+  // 优先展示有独立详情页的国家，没有数据就跳过
+  const picks = [...targets, ...countries.map((c) => c.iso)]
+    .map((iso) => ({ iso, row: boardByIso.get(iso) }))
+    .filter((x) => x.row?.top)
+    .slice(0, 12);
+
+  const countryRows = picks
+    .map(({ iso, row }) => {
+      const c = countries.find((x) => x.iso === iso);
+      const href = targets.includes(iso) ? `/country/${iso.toLowerCase()}/` : `/#/${iso}`;
+      return `      <li>
+        <a class="seed-country" href="${href}">
+          <b>${flagOf(iso)} ${esc(c?.nameEn || iso)}</b>
+          <span>${esc(row.top.title).slice(0, 60)}</span>
+        </a>
+      </li>`;
+    })
+    .join('\n');
+
+  const html = `
+  <div class="seed-head">
+    <h2>Today at a glance</h2>
+    <span>${esc(stamp)} UTC · ${(clusters || []).length} cross-border stories</span>
+  </div>
+  <div class="seed-cols">
+    <div>
+      <h3>Trending in several countries at once <span class="seed-hint">(number = countries)</span></h3>
+      <ul>
+${storyRows}
+      </ul>
+      <p class="seed-note">Each of these was the number one search in more than one place on the same day — the number shows how many.</p>
+      <p class="seed-more"><a href="/topics/">All ${(clusters || []).length} stories →</a></p>
+    </div>
+    <div>
+      <h3>What 12 countries are searching for</h3>
+      <ul>
+${countryRows}
+      </ul>
+      <p class="seed-more"><a href="/countries/">All 176 countries and regions →</a></p>
+    </div>
+  </div>`;
+
+  return { html, empty: false };
+}
+
+function injectSeed({ page, seed }) {
+  const file = path.join(PUBLIC, 'index.html');
+  let html = fs.readFileSync(file, 'utf8');
+  const start = '<!--SEED:START-->';
+  const end = '<!--SEED:END-->';
+  const a = html.indexOf(start);
+  const b = html.indexOf(end);
+  if (a === -1 || b === -1) return false;
+
+  const before = html.slice(0, a + start.length);
+  const after = html.slice(b);
+  html = `${before}${seed.html}${after}`;
+  html = html.replace(
+    /<section class="seed" id="today-glance"([^>]*)>/,
+    (m, attrs) => `<section class="seed" id="today-glance"${attrs.replace(/\s*data-empty="1"/, '')}${seed.empty ? ' data-empty="1"' : ''}>`,
+  );
+  fs.writeFileSync(file, html);
+  return true;
+}
+
 /* ---------------- main ---------------- */
 
 const countries = readJson(path.join(DATA, 'countries.json'), []);
@@ -725,6 +815,18 @@ if (topicCount) {
   entries.push({ path: '/topics/', lastmod, changefreq: 'daily', priority: '0.8' });
   fs.writeFileSync(path.join(PUBLIC, 'sitemap.xml'), buildSitemap(entries));
   console.log(`话题页：生成 ${topicCount} 个（含 /topics/ 索引）`);
+}
+
+// 首页静态内容
+const seed = buildSeed({
+  clusters: pulse?.clusters || [],
+  boardByIso: new Map((board?.countries || []).map((b) => [b.iso, b])),
+  countries,
+  updatedAt,
+  targets,
+});
+if (injectSeed({ page: 'index.html', seed })) {
+  console.log(`首页静态内容：${seed.empty ? '无数据，已隐藏' : 'TOP5 故事 + 12 国已注入'}`);
 }
 
 // Atom feed
