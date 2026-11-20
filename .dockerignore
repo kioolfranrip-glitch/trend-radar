@@ -1,0 +1,9 @@
+node_modules
+data
+public/data
+public/daily
+reports
+marketing
+.git
+_*.json
+_*.sh
