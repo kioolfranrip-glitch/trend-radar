@@ -128,6 +128,64 @@ async function fetchAnalytics(token, attempt = 0) {
   };
 }
 
+/* ---------------- 爬虫抓取（Googlebot / Bingbot） ---------------- */
+
+/**
+ * 抓取行为不在 RUM 数据集里（RUM 只记录真实浏览器加载），
+ * 得查 zone 级的 httpRequests 数据集。用同一个 token 试一次，
+ * 没权限就返回 null，不让日报整体失败。
+ */
+const BOT_UAS = {
+  Googlebot: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+  Bingbot: 'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
+};
+
+async function fetchBotTraffic(token) {
+  const until = new Date();
+  const since = new Date(until.getTime() - DAYS * 86400_000);
+  const aliases = Object.keys(BOT_UAS)
+    .map(
+      (name, i) => `${name.toLowerCase()}: httpRequestsAdaptiveGroups(
+      limit:40
+      filter:{datetime_geq:$s, datetime_leq:$u, clientRequestHTTPHost:$host, userAgent:$ua${i}}
+    ){ count dimensions{ date clientRequestPath edgeResponseStatus } }`,
+    )
+    .join('\n    ');
+
+  const query = `query($a:String!,$s:Time!,$u:Time!,$host:String!${Object.keys(BOT_UAS)
+    .map((_, i) => `,$ua${i}:String!`)
+    .join('')}){
+  viewer { accounts(filter:{accountTag:$a}) {
+    ${aliases}
+  } }
+}`;
+
+  const variables = {
+    a: ACCOUNT_ID,
+    s: since.toISOString(),
+    u: until.toISOString(),
+    host: process.env.SITE_HOST || 'trends-world.pages.dev',
+  };
+  Object.values(BOT_UAS).forEach((ua, i) => (variables[`ua${i}`] = ua));
+
+  try {
+    const res = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ query, variables }),
+    });
+    const json = await res.json();
+    if (json.errors?.length) return { ok: false, error: json.errors[0].message };
+    const account = json?.data?.viewer?.accounts?.[0];
+    if (!account) return { ok: false, error: 'no account data' };
+    const out = {};
+    for (const name of Object.keys(BOT_UAS)) out[name] = account[name.toLowerCase()] || [];
+    return { ok: true, bots: out, since };
+  } catch (err) {
+    return { ok: false, error: String(err.message || err) };
+  }
+}
+
 /* ---------------- 渲染 ---------------- */
 
 const fmtInt = (n) => Number(n || 0).toLocaleString('en-US');
@@ -139,7 +197,7 @@ const ago = (ts) => {
   return `${Math.round(h / 24)}d ago`;
 };
 
-function render({ health, traffic, tokenInfo }) {
+function render({ health, traffic, bots, tokenInfo }) {
   const now = new Date();
   const L = [];
   L.push(`# Trends World — ${now.toISOString().slice(0, 10)}`);
@@ -201,6 +259,37 @@ function render({ health, traffic, tokenInfo }) {
   } else {
     L.push(`- Analytics unavailable: ${tokenInfo.error || 'no token'}`);
   }
+  L.push('');
+
+  // 爬虫抓取
+  L.push('## Crawlers');
+  L.push('');
+  if (bots?.ok) {
+    for (const [name, rows] of Object.entries(bots.bots)) {
+      const total = rows.reduce((s, r) => s + r.count, 0);
+      if (!total) {
+        L.push(`- ${name}: **0 requests** in the window`);
+        continue;
+      }
+      const byDay = new Map();
+      for (const r of rows) byDay.set(r.dimensions.date, (byDay.get(r.dimensions.date) || 0) + r.count);
+      const days = [...byDay.entries()].sort().map(([d, n]) => `${d.slice(5)} ${n}`).join(' · ');
+      const byPath = new Map();
+      for (const r of rows) {
+        const p = r.dimensions.clientRequestPath || '/';
+        byPath.set(p, (byPath.get(p) || 0) + r.count);
+      }
+      const paths = [...byPath.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([p, n]) => `${p} (${n})`)
+        .join(', ');
+      L.push(`- ${name}: **${total} requests** — ${days}`);
+      L.push(`  - paths: ${paths}`);
+    }
+  } else {
+    L.push(`- Crawler data unavailable: ${bots?.error || 'token lacks httpRequests permission'}`);
+  }
   return L.join('\n');
 }
 
@@ -221,7 +310,18 @@ if (tokenInfo) {
   }
 }
 
-const report = render({ health, traffic, tokenInfo });
+let bots = null;
+if (tokenInfo) {
+  try {
+    bots = await fetchBotTraffic(tokenInfo.token);
+    if (!bots.ok) process.stderr.write(`bot query unavailable: ${bots.error}\n`);
+  } catch (err) {
+    bots = { ok: false, error: String(err.message || err) };
+    process.stderr.write(`bot query failed: ${bots.error}\n`);
+  }
+}
+
+const report = render({ health, traffic, bots, tokenInfo });
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const outFile = path.join(OUT_DIR, `${new Date().toISOString().slice(0, 10)}.md`);
 fs.writeFileSync(outFile, report + '\n');
