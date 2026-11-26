@@ -21,7 +21,7 @@ import process from 'node:process';
 import readline from 'node:readline';
 
 const BASE = (process.env.TRENDS_BASE || 'https://trends-world.pages.dev').replace(/\/$/, '');
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const PROTOCOL = '2024-11-05';
 const TTL_MS = 10 * 60 * 1000;
 
@@ -183,12 +183,29 @@ const TOOLS = [
   {
     name: 'trending_by_country',
     description:
-      "Get the top trending topics for one country or region right now. Returns ranked topics with search volume, source and a link to the original article. Use an ISO 3166-1 alpha-2 code (JP, US, BR) or a name (Japan, 日本).",
+      'Return the ranked list of top trending searches for one country or region, newest snapshot first. ' +
+      'Each entry carries its rank, the headline, the search-volume bucket the source itself reported (values like "200+" — these are buckets, not exact counts), ' +
+      'the source that answered (google-trends, bing-news, wikipedia or baidu) and a URL for the article that ran it. ' +
+      'The response also states the snapshot timestamp and which source answered for that place, so two countries measured by different sources are not comparable. ' +
+      'If the name you pass is ambiguous the tool returns the matching ISO codes instead of guessing.',
     inputSchema: {
       type: 'object',
       properties: {
-        country: { type: 'string', description: 'ISO 3166-1 alpha-2 code, or English/Chinese country name' },
-        limit: { type: 'number', description: 'How many topics to return (default 10, max 20)' },
+        country: {
+          type: 'string',
+          title: 'Country',
+          description:
+            'ISO 3166-1 alpha-2 code ("JP", "BR") or a country name in English or Chinese ("Japan", "日本"). Partial names work when only one place matches.',
+          examples: ['JP', 'Japan', '日本'],
+        },
+        limit: {
+          type: 'integer',
+          title: 'Number of topics',
+          description: 'How many ranked topics to return. Values are clamped to 1–20.',
+          default: 10,
+          minimum: 1,
+          maximum: 20,
+        },
       },
       required: ['country'],
     },

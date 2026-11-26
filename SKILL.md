@@ -42,7 +42,7 @@ Tools exposed:
 
 | Tool | Arguments | Returns |
 | --- | --- | --- |
-| `trending_by_country` | `country` (ISO code or name), `limit` | Ranked topics with volume, source, URL |
+| `trending_by_country` | `country` (ISO code or name), `limit` (1–20, default 10) | Ranked topics with the volume bucket the source reported, source label, article URL |
 | `global_pulse` | – | Stories that are #1 in several countries |
 | `search_countries` | `query` | Matching countries + their current top topic |
 | `snapshot_status` | – | Generation time, coverage, source mix |
