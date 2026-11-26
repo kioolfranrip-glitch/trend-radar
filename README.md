@@ -1,3 +1,62 @@
+# 🌍 Trends World
+
+**Daily trending topics for 176 countries and regions** — as a static website and an open dataset. Every topic carries a link to the article that reported it.
+
+- **Live site:** https://trends-world.pages.dev
+- **Dataset:** static JSON, no API key, no authentication, refreshed every three hours
+- **MCP server:** `mcp/trends-mcp.mjs` — zero dependencies, stdio transport, four read-only tools
+
+## What it does
+
+Trends World collects the single hottest search topic of the day in each of 176 countries and regions, links every entry to its original source, and groups topics that are trending in more than one country at the same time. The site itself is static: all data is pre-rendered JSON, and GitHub Actions rebuilds it every three hours.
+
+## Why it is different
+
+| | |
+| --- | --- |
+| **Broadest coverage** | 176 countries and regions, most trend sources stop at 30–60 |
+| **Sources are labelled, never blended** | Google Trends measures search interest, Bing News measures news interest. Each entry says which one answered, and the documentation repeats the warning so agents do not add them together |
+| **Open by default** | Every page is backed by a public JSON file; there is also an MCP server and an `llms.txt` summary for AI agents |
+| **No dependencies** | Node.js ≥ 20 and nothing else — the crawler, the page generator, the MCP server and the image renderer all use the standard library only |
+| **Nothing to keep alive** | Static hosting on Cloudflare Pages; there is no server to patch or pay for |
+
+## MCP tools
+
+| Tool | Arguments | Returns |
+| --- | --- | --- |
+| `trending_by_country` | `country`, `limit` | Ranked topics with search-volume bucket, source and article URL |
+| `global_pulse` | – | Stories that are #1 in several countries at once |
+| `search_countries` | `query` | Matching countries and their current top topic |
+| `snapshot_status` | – | Freshness, coverage out of 176, source mix, failures |
+
+```json
+{
+  "mcpServers": {
+    "trends-world": {
+      "command": "node",
+      "args": ["<path-to-repo>/mcp/trends-mcp.mjs"]
+    }
+  }
+}
+```
+
+## Data endpoints
+
+```
+/data/countries.json        176 places: ISO codes, names, continent, coordinates
+/data/board.json            top topic per country
+/data/details/<ISO>.json    full top-10 for one country
+/data/global.json           cross-border clusters, each with a slug
+/data/meta.json             generation time, coverage, source distribution, failures
+```
+
+Documentation: https://trends-world.pages.dev/api/ · machine-readable summary: https://trends-world.pages.dev/llms.txt
+
+---
+
+<details>
+<summary>中文说明（Chinese documentation）</summary>
+
 # 🌍 Trends World · 全球每日热榜
 
 一眼看遍世界：把 **176 个国家 / 地区** 当天热度最高的话题汇总到一张可点击的世界地图上，每条话题都带着**原文链接**，点开即达。
@@ -318,3 +377,5 @@ node tools/crawl.mjs --proxy=http://127.0.0.1:7890
 - 部分外链（如 Cricinfo）对非浏览器请求返回 403，正常浏览器打开不受影响
 - 跨国故事按标题相似度聚类，偶尔会把同一天的不同事件合并，页面已注明这一点
 - 数据版权归各来源所有，本工具只做聚合与跳转
+
+</details>
