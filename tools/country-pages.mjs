@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readHistory, diffTopics, dailyLeaders, normalize } from './history.mjs';
+import { buildPulse } from './cluster.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -429,10 +430,12 @@ function buildTopicPage({ cluster, members, updatedAt }) {
   const rows = members
     .map((m) => {
       const href = m.hasPage ? `/country/${m.iso.toLowerCase()}/` : `/#/${m.iso}`;
+      const local = m.headline && m.headline !== cluster.title ? m.headline : '';
       return `      <li>
         <a class="c" href="${href}">${flagOf(m.iso)} ${esc(m.name)}</a>
         <span class="s">${m.traffic ? esc(m.traffic) + ' searches' : esc(m.sourceLabel || '')}</span>
         ${m.url ? `<a class="src" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">source ↗</a>` : '<span class="src muted">no link</span>'}
+        ${local ? `<div class="h" lang="">${esc(local)}</div>` : ''}
       </li>`;
     })
     .join('\n');
@@ -496,7 +499,10 @@ function buildTopicPage({ cluster, members, updatedAt }) {
   .stamp .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2e7d5b;margin-right:6px;vertical-align:middle}
   .lead{margin-top:16px;font-size:15px;color:#2b2620}
   ul{list-style:none;margin-top:20px}
-  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .h{flex:1 0 100%;font-size:13px;line-height:1.5;color:#2b2620;margin-top:3px;padding-left:2px;overflow-wrap:anywhere}
+  .h::before{content:"“";color:var(--dim)}
+  .h::after{content:"”";color:var(--dim)}
   .c{flex:1;font-weight:600;font-size:15px}
   .c:hover{color:var(--accent)}
   .s{flex:0 0 130px;text-align:right;font-size:12px;color:var(--dim)}
@@ -520,7 +526,7 @@ function buildTopicPage({ cluster, members, updatedAt }) {
     <p class="crumb"><a href="/">World map</a> / <a href="/topics/">Topics</a> / ${esc(cluster.title).slice(0, 60)}</p>
     <h1>${esc(cluster.title)}</h1>
     <p class="stamp"><span class="dot"></span><time datetime="${new Date(updatedAt).toISOString()}">${esc(fmtDate(updatedAt))}</time> · #1 trending topic in ${n} ${n === 1 ? 'place' : 'places'}</p>
-    <p class="lead">This single story topped the trending list in ${n} countries and regions at the same time. Each row links to the country's page and to the article that reported it.</p>
+    <p class="lead">This single story topped the trending list in ${n} countries and regions at the same time. Below is how each place headlined it, with a link to the article that ran it.</p>
     <ul>
 ${rows}
     </ul>
@@ -589,7 +595,10 @@ function buildTopicsIndex({ clusters, updatedAt }) {
   h1{font-family:var(--serif);font-size:clamp(24px,4vw,32px);line-height:1.2;font-weight:600;letter-spacing:-.5px}
   .lead{margin-top:10px;color:var(--muted);font-size:14.5px}
   ul{list-style:none;margin-top:22px}
-  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .h{flex:1 0 100%;font-size:13px;line-height:1.5;color:#2b2620;margin-top:3px;padding-left:2px;overflow-wrap:anywhere}
+  .h::before{content:"“";color:var(--dim)}
+  .h::after{content:"”";color:var(--dim)}
   .t{flex:1;font-weight:600;font-size:15px;overflow-wrap:anywhere}
   .t:hover{color:var(--accent)}
   .n{flex:0 0 110px;text-align:right;font-size:12px;color:var(--dim)}
@@ -708,6 +717,231 @@ function injectSeed({ page, seed }) {
   return true;
 }
 
+
+
+/* ---------------- 周报 /reports/<year>-W<week>/ ---------------- */
+
+function isoWeek(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  const day = (d.getUTCDay() + 6) % 7; // 周一=0
+  d.setUTCDate(d.getUTCDate() - day + 3); // 到本周周四
+  const firstThu = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((d - firstThu) / 86400000 - 3 + ((firstThu.getUTCDay() + 6) % 7)) / 7);
+  return { year: d.getUTCFullYear(), week };
+}
+
+/**
+ * 把过去 7 天每天「各国 Top1」重新聚类，再按归一化标题合并，
+ * 得到「本周在最多国家登顶的故事」。
+ */
+function aggregateWeek(countries) {
+  const perDay = new Map();
+  for (const c of countries) {
+    for (const day of readHistory(CACHE_DIR, c.iso)) {
+      const top1 = (day.topics || []).find((t) => Number(t.rank) === 1);
+      if (!top1) continue;
+      if (!perDay.has(day.date)) perDay.set(day.date, []);
+      perDay.get(day.date).push({ iso: c.iso, nameEn: c.nameEn, source: day.source, topic: top1 });
+    }
+  }
+
+  const dates = [...perDay.keys()].sort().slice(-7);
+  const merged = new Map();
+  for (const date of dates) {
+    const rows = perDay.get(date) || [];
+    const { clusters } = buildPulse(rows, { limit: 60, minCountries: 2 });
+    for (const cl of clusters) {
+      const key = normalize(cl.title);
+      if (!merged.has(key)) {
+        merged.set(key, { title: cl.title, url: cl.url, countries: new Set(), dates: new Set(), peak: 0 });
+      }
+      const m = merged.get(key);
+      for (const iso of cl.countries) m.countries.add(iso);
+      m.dates.add(date);
+      if (cl.count > m.peak) {
+        m.peak = cl.count;
+        m.title = cl.title;
+        m.url = cl.url;
+      }
+    }
+  }
+
+  const stories = [...merged.values()]
+    .map((m) => ({
+      title: m.title,
+      url: m.url,
+      countries: [...m.countries],
+      days: [...m.dates].sort(),
+      peak: m.peak,
+    }))
+    .sort((a, b) => b.countries.length - a.countries.length || b.days.length - a.days.length);
+
+  return { dates, stories };
+}
+
+function buildWeeklyPage({ week, dates, stories, slugByTitle, totalPlaces }) {
+  const top = stories.slice(0, 15);
+  const label = `Week ${week.week} of ${week.year}`;
+  const first = dates[0] || '';
+  const last = dates[dates.length - 1] || '';
+  const title = `${label} — the stories that crossed borders`;
+  const description = `In the week of ${first} to ${last}, these topics were the number one search in the most countries at once. ${stories.length} stories crossed at least two borders.`;
+
+  const rows = top
+    .map((s, i) => {
+      const slug = slugByTitle.get(normalize(s.title));
+      const head = slug
+        ? `<a href="/topic/${slug}/">${esc(s.title)}</a>`
+        : esc(s.title);
+      const span = s.days.length === 1 ? s.days[0].slice(5) : `${s.days[0].slice(5)} – ${s.days[s.days.length - 1].slice(5)}`;
+      return `      <li>
+        <span class="r">${i + 1}</span>
+        <span class="t">${head}</span>
+        <span class="n">${s.countries.length}</span>
+        <span class="d">${span}</span>
+      </li>`;
+    })
+    .join('\n');
+
+  const top1 = top[0];
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}" />
+<link rel="canonical" href="${SITE}/reports/${week.year}-W${String(week.week).padStart(2, '0')}/" />
+<meta name="theme-color" content="#080b16" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(description)}" />
+<meta property="og:image" content="${SITE}/og-light.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="alternate" type="application/atom+xml" title="Trends World" href="${SITE}/feed.xml" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--paper:#f7f4ed;--ink:#171410;--muted:#6e6659;--dim:#9b9284;--line:rgba(23,20,16,.13);--accent:#c1402a;
+        --serif:"Iowan Old Style",Palatino,Georgia,"Songti SC",serif}
+  body{background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:30px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .mark{width:30px;height:30px;border-radius:4px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+  h1{font-family:var(--serif);font-size:clamp(26px,4.4vw,36px);line-height:1.16;letter-spacing:-.6px;font-weight:600}
+  .stamp{margin-top:10px;font-size:13px;color:var(--muted)}
+  .lead{margin-top:14px;font-size:15px;color:#2b2620;max-width:640px}
+  .hi{margin:22px 0 6px;padding:16px 18px;border-left:3px solid var(--accent);background:#fff;border-radius:2px}
+  .hi small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+  .hi b{font-family:var(--serif);font-size:18px;font-weight:600}
+  .hi span{color:var(--muted);font-size:13.5px}
+  ul{list-style:none;margin-top:20px}
+  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  .r{flex:0 0 24px;text-align:right;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .t{flex:1;font-size:14.5px;min-width:0}
+  .t a:hover{color:var(--accent)}
+  .n{flex:0 0 46px;text-align:right;font-family:var(--serif);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .d{flex:0 0 84px;text-align:right;font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .legend{margin-top:10px;font-size:11.5px;color:var(--dim)}
+  section{margin-top:32px;padding:18px;border:1px solid var(--line);background:#fff;border-radius:2px}
+  section h2{font-family:var(--serif);font-size:16px;margin-bottom:8px;font-weight:600}
+  section p{font-size:14px;color:var(--muted)}
+  footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
+  @media(max-width:620px){li{flex-wrap:wrap}.t{flex:1 0 100%}.d{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/reports/">Reports</a><a href="/feed.xml">RSS</a></nav>
+  </header>
+  <main>
+    <h1>${esc(label)}: the stories that crossed borders</h1>
+    <p class="stamp">${esc(first)} – ${esc(last)} · ${stories.length} stories reached at least two countries</p>
+    <p class="lead">Every three hours the site records the single top search in each of ${totalPlaces} countries and regions. This page groups those top searches by story and counts how many places picked the same one during the week.</p>
+${top1 ? `    <div class="hi">
+      <small>Most international story of the week</small>
+      <b>${esc(top1.title)}</b><br />
+      <span>Number one in ${top1.countries.length} places, on ${top1.days.length} of ${dates.length} days</span>
+    </div>` : ''}
+    <ul>
+${rows}
+    </ul>
+    <p class="legend">Columns: places where it was the top search · days it appeared. Only stories that appeared in two or more places are listed.</p>
+
+    <section>
+      <h2>How this is calculated</h2>
+      <p>Each day, the top search in every country is compared with the others using headline similarity, not geography. Stories are then matched across the seven days by title. A story that led in one place on Monday and another on Friday counts once, with two places. The grouping is mechanical, so closely related but distinct events can occasionally end up together.</p>
+    </section>
+  </main>
+  <footer>
+    <a href="/">World map</a><a href="/countries/">All countries</a><a href="/reports/">All weekly reports</a><a href="/feed.xml">RSS</a><a href="/about/">About</a>
+    <span>Content rights belong to the original sources.</span>
+  </footer>
+</div>
+</body>
+</html>
+`;
+}
+
+function buildReportsIndex({ weeks }) {
+  const rows = weeks
+    .map((w) => `      <li><a class="w" href="/reports/${w.id}/">Week ${w.week} of ${w.year}</a><span class="s">${w.range}</span><span class="n">${w.count} stories</span></li>`)
+    .join('\n');
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Weekly reports — Trends World</title>
+<meta name="description" content="Weekly roundups of the stories that were the top search in the most countries at once." />
+<link rel="canonical" href="${SITE}/reports/" />
+<meta name="theme-color" content="#080b16" />
+<meta property="og:title" content="Weekly reports — Trends World" />
+<meta property="og:image" content="${SITE}/og-light.png" />
+<link rel="alternate" type="application/atom+xml" title="Trends World" href="${SITE}/feed.xml" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--paper:#f7f4ed;--ink:#171410;--muted:#6e6659;--dim:#9b9284;--line:rgba(23,20,16,.13);--accent:#c1402a;
+        --serif:"Iowan Old Style",Palatino,Georgia,"Songti SC",serif}
+  body{background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:30px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .mark{width:30px;height:30px;border-radius:4px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+  h1{font-family:var(--serif);font-size:clamp(24px,4vw,32px);letter-spacing:-.5px;font-weight:600}
+  .lead{margin-top:10px;color:var(--muted);font-size:14.5px}
+  ul{list-style:none;margin-top:22px}
+  li{display:flex;gap:14px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line)}
+  .w{flex:1;font-weight:600;font-size:15px}
+  .w:hover{color:var(--accent)}
+  .s{flex:0 0 160px;text-align:right;font-size:12px;color:var(--dim)}
+  .n{flex:0 0 90px;text-align:right;font-size:12px;color:var(--dim)}
+  footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim);display:flex;gap:14px}
+</style></head>
+<body><div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><span class="mark">🌍</span> Trends World</a>
+    <nav><a href="/">World map</a><a href="/countries/">All countries</a><a href="/feed.xml">RSS</a></nav>
+  </header>
+  <main>
+    <h1>Weekly reports</h1>
+    <p class="lead">The stories that were the top search in the most countries at once, one page per week.</p>
+    <ul>
+${rows || '      <li><span class="w">No complete week yet — the first report needs seven days of snapshots.</span></li>'}
+    </ul>
+  </main>
+  <footer><a href="/">World map</a><a href="/countries/">All countries</a><a href="/reports/">Reports</a><a href="/about/">About</a></footer>
+</div></body></html>
+`;
+}
+
 /* ---------------- main ---------------- */
 
 const countries = readJson(path.join(DATA, 'countries.json'), []);
@@ -793,6 +1027,7 @@ for (const cluster of pulse?.clusters || []) {
     return {
       iso,
       name: byIsoAll.get(iso)?.nameEn || iso,
+      headline: t?.title || '',
       url: t?.url || '',
       traffic: t?.traffic || '',
       sourceLabel: t?.sourceLabel || '',
@@ -815,6 +1050,51 @@ if (topicCount) {
   entries.push({ path: '/topics/', lastmod, changefreq: 'daily', priority: '0.8' });
   fs.writeFileSync(path.join(PUBLIC, 'sitemap.xml'), buildSitemap(entries));
   console.log(`话题页：生成 ${topicCount} 个（含 /topics/ 索引）`);
+}
+
+// 周报
+try {
+  const week = aggregateWeek(countries);
+  if (week.dates.length >= 5 && week.stories.length) {
+    const iso = isoWeek(week.dates[week.dates.length - 1]);
+    const id = `${iso.year}-W${String(iso.week).padStart(2, '0')}`;
+    const slugByTitle = new Map((pulse?.clusters || []).map((c) => [normalize(c.title), c.slug]));
+    const reportsDir = path.join(PUBLIC, 'reports');
+    const weekDir = path.join(reportsDir, id);
+    fs.mkdirSync(weekDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(weekDir, 'index.html'),
+      buildWeeklyPage({ week: iso, dates: week.dates, stories: week.stories, slugByTitle, totalPlaces: countries.length }),
+    );
+    entries.push({ path: `/reports/${id}/`, lastmod, changefreq: 'weekly', priority: '0.8' });
+
+    // 归档索引：扫已有周报目录
+    const existing = fs
+      .readdirSync(reportsDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory() && /^\d{4}-W\d{2}$/.test(d.name))
+      .map((d) => d.name)
+      .sort()
+      .reverse();
+    const weeks = existing.map((name) => {
+      const [y, w] = name.split('-W');
+      const isCurrent = name === id;
+      return {
+        id: name,
+        year: y,
+        week: Number(w),
+        range: isCurrent ? `${week.dates[0]} – ${week.dates[week.dates.length - 1]}` : 'archived',
+        count: isCurrent ? week.stories.length : '',
+      };
+    });
+    fs.writeFileSync(path.join(reportsDir, 'index.html'), buildReportsIndex({ weeks }));
+    entries.push({ path: '/reports/', lastmod, changefreq: 'weekly', priority: '0.7' });
+    fs.writeFileSync(path.join(PUBLIC, 'sitemap.xml'), buildSitemap(entries));
+    console.log(`周报：${id}（${week.stories.length} 个跨国故事，覆盖 ${week.dates.length} 天）`);
+  } else {
+    console.log(`周报：历史只有 ${week.dates.length} 天，暂不生成（需要 5 天以上）`);
+  }
+} catch (err) {
+  console.error('周报生成失败（不影响其它页面）:', err.message);
 }
 
 // 首页静态内容

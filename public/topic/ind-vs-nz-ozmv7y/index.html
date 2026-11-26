@@ -33,7 +33,10 @@
   .stamp .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2e7d5b;margin-right:6px;vertical-align:middle}
   .lead{margin-top:16px;font-size:15px;color:#2b2620}
   ul{list-style:none;margin-top:20px}
-  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .h{flex:1 0 100%;font-size:13px;line-height:1.5;color:#2b2620;margin-top:3px;padding-left:2px;overflow-wrap:anywhere}
+  .h::before{content:"“";color:var(--dim)}
+  .h::after{content:"”";color:var(--dim)}
   .c{flex:1;font-weight:600;font-size:15px}
   .c:hover{color:var(--accent)}
   .s{flex:0 0 130px;text-align:right;font-size:12px;color:var(--dim)}
@@ -57,27 +60,31 @@
     <p class="crumb"><a href="/">World map</a> / <a href="/topics/">Topics</a> / ind vs nz</p>
     <h1>ind vs nz</h1>
     <p class="stamp"><span class="dot"></span><time datetime="2026-11-13T08:55:40.847Z">13 Nov 2026, 08:55 UTC</time> · #1 trending topic in 4 places</p>
-    <p class="lead">This single story topped the trending list in 4 countries and regions at the same time. Each row links to the country's page and to the article that reported it.</p>
+    <p class="lead">This single story topped the trending list in 4 countries and regions at the same time. Below is how each place headlined it, with a link to the article that ran it.</p>
     <ul>
       <li>
         <a class="c" href="/#/LK">🇱🇰 Sri Lanka</a>
         <span class="s">10000+ searches</span>
         <a class="src" href="https://www.cricinfo.com/series/india-in-new-zealand-2026-27-1539421/new-zealand-vs-india-4th-odi-1539440/live-match-blog" target="_blank" rel="noopener noreferrer">source ↗</a>
+        
       </li>
       <li>
         <a class="c" href="/#/NG">🇳🇬 Nigeria</a>
         <span class="s">200+ searches</span>
         <a class="src" href="https://timesofindia.indiatimes.com/sports/cricket/india-vs-new-zealand/ind-vs-nz-rohit-sharma-ishan-kishan-drop-will-young-on-consecutive-deliveries-to-leave-auqib-nabi-disappointed/articleshow/135786605.cms" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">nz vs ind</div>
       </li>
       <li>
         <a class="c" href="/#/UG">🇺🇬 Uganda</a>
         <span class="s">200+ searches</span>
         <a class="src" href="https://www.bcci.tv/matches/9596db6a-a8a9-4b66-bfcd-db2345a2698d/new-zealand-vs-india/commentary" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">nz vs ind</div>
       </li>
       <li>
         <a class="c" href="/#/CD">🇨🇩 Democratic Republic of the Congo</a>
         <span class="s">100+ searches</span>
         <a class="src" href="https://www.bcci.tv/matches/9596db6a-a8a9-4b66-bfcd-db2345a2698d/new-zealand-vs-india/commentary" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">nz vs ind</div>
       </li>
     </ul>
     <section>

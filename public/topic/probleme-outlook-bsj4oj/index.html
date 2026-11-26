@@ -33,7 +33,10 @@
   .stamp .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2e7d5b;margin-right:6px;vertical-align:middle}
   .lead{margin-top:16px;font-size:15px;color:#2b2620}
   ul{list-style:none;margin-top:20px}
-  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .h{flex:1 0 100%;font-size:13px;line-height:1.5;color:#2b2620;margin-top:3px;padding-left:2px;overflow-wrap:anywhere}
+  .h::before{content:"“";color:var(--dim)}
+  .h::after{content:"”";color:var(--dim)}
   .c{flex:1;font-weight:600;font-size:15px}
   .c:hover{color:var(--accent)}
   .s{flex:0 0 130px;text-align:right;font-size:12px;color:var(--dim)}
@@ -57,47 +60,55 @@
     <p class="crumb"><a href="/">World map</a> / <a href="/topics/">Topics</a> / probleme outlook</p>
     <h1>probleme outlook</h1>
     <p class="stamp"><span class="dot"></span><time datetime="2026-11-13T08:55:40.847Z">13 Nov 2026, 08:55 UTC</time> · #1 trending topic in 8 places</p>
-    <p class="lead">This single story topped the trending list in 8 countries and regions at the same time. Each row links to the country's page and to the article that reported it.</p>
+    <p class="lead">This single story topped the trending list in 8 countries and regions at the same time. Below is how each place headlined it, with a link to the article that ran it.</p>
     <ul>
       <li>
         <a class="c" href="/#/BE">🇧🇪 Belgium</a>
         <span class="s">100+ searches</span>
         <a class="src" href="https://www.tagesschau.de/wirtschaft/digitales/microsoft-outlook-ausfall-100.html" target="_blank" rel="noopener noreferrer">source ↗</a>
+        
       </li>
       <li>
         <a class="c" href="/#/HR">🇭🇷 Croatia</a>
         <span class="s">1000+ searches</span>
         <a class="src" href="https://www.cnn.com/2026/11/12/tech/microsoft-outage-cripples-office-workers-nationwide" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">outlook</div>
       </li>
       <li>
         <a class="c" href="/#/MZ">🇲🇿 Mozambique</a>
         <span class="s">200+ searches</span>
         <a class="src" href="https://edition.cnn.com/2026/11/12/business/live-news/microsoft-global-outage-intl-hnk" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">outlook</div>
       </li>
       <li>
         <a class="c" href="/#/TZ">🇹🇿 Tanzania</a>
         <span class="s">200+ searches</span>
         <a class="src" href="https://www.bbc.com/news/live/cq5y10ge3dp3t" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">outlook</div>
       </li>
       <li>
         <a class="c" href="/#/AL">🇦🇱 Albania</a>
         <span class="s">100+ searches</span>
         <a class="src" href="https://www.cnn.com/2026/11/12/tech/microsoft-outage-cripples-office-workers-nationwide" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">outlook</div>
       </li>
       <li>
         <a class="c" href="/#/AO">🇦🇴 Angola</a>
         <span class="s">100+ searches</span>
         <a class="src" href="https://www.cnn.com/2026/11/12/business/live-news/microsoft-global-outage-intl-hnk" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">outlook</div>
       </li>
       <li>
         <a class="c" href="/#/MK">🇲🇰 North Macedonia</a>
         <span class="s">100+ searches</span>
         <a class="src" href="https://www.cnn.com/2026/11/12/tech/microsoft-outage-cripples-office-workers-nationwide" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">outlook</div>
       </li>
       <li>
         <a class="c" href="/#/ZM">🇿🇲 Zambia</a>
         <span class="s">100+ searches</span>
         <a class="src" href="https://www.cnn.com/2026/11/12/business/live-news/microsoft-global-outage-intl-hnk" target="_blank" rel="noopener noreferrer">source ↗</a>
+        <div class="h" lang="">outlook</div>
       </li>
     </ul>
     <section>
